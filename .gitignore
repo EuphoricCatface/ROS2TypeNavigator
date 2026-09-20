@@ -1,0 +1,22 @@
+# Local agent and editor state
+/.agents/
+/.codex/
+/.idea/
+/.vscode/
+.DS_Store
+*~
+*.swp
+
+# Generated packages and test artifacts
+/dist/
+/artifacts/
+/coverage/
+*.zip
+*.xpi
+*.crx
+*.log
+
+# Browser profiles and caches, if created inside the repository
+/browser-profiles/
+/.cache/
+__pycache__/

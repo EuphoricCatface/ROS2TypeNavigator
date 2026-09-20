@@ -1,0 +1,29 @@
+#ros2-type-navigator-definition {
+  margin-block: 1.5rem;
+  padding-block-start: 1rem;
+  border-block-start: 1px solid currentColor;
+  color: inherit;
+}
+
+#ros2-type-navigator-definition h2 { font-size: 1.25rem; }
+#ros2-type-navigator-definition h3 { font-size: 1rem; margin-block: 1rem 0.5rem; }
+#ros2-type-navigator-definition pre {
+  overflow-x: auto;
+  padding: 1rem;
+  border: 1px solid currentColor;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: inherit;
+  line-height: 1.6;
+  white-space: pre;
+}
+#ros2-type-navigator-definition code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  font-family: ui-monospace, monospace;
+}
+#ros2-type-navigator-definition a { text-decoration: underline; text-underline-offset: 0.15em; }
+#ros2-type-navigator-definition a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
