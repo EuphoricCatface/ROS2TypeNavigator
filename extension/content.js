@@ -1,3 +1,6 @@
+/* Copyright (C) 2026 Seongyong Park and contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 (function (root) {
   "use strict";
   const SECTION_ID = "ros2-type-navigator-definition";

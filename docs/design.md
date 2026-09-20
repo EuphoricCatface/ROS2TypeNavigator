@@ -15,7 +15,7 @@ This project improves browsing by adding navigable type links to the official pa
 - No framework or compilation step required. Browser-specific packaging is allowed.
 - Actions, standalone IDL definitions, and pre-rosdoc2 documentation are outside the initial scope.
 
-The existing `app/` directory is a prototype of the earlier standalone website. Its input controls may be reused; its query-string routing is not the extension's API.
+The earlier standalone website prototype is preserved under `app/` in the initial Git commit (`c059695`). The extension replaces that prototype; its query-string routing is not the extension's API.
 
 ## Official URLs
 

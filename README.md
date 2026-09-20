@@ -58,7 +58,15 @@ An empty distro uses `rolling`. Type does not affect listing destinations. The d
 
 ## Development and tests
 
-`extension/` contains the directly loadable extension. `app/` retains the earlier standalone prototype. `app-design.md` records the behavior and constraints.
+```text
+extension/          Directly loadable Firefox/Chrome extension
+tests/              Unit tests, browser harness, and fixtures
+docs/design.md      Behavior and constraints
+docs/development.md Development findings and repository history
+LICENSE             GNU GPL version 3; this project permits later versions
+```
+
+See the [design specification](docs/design.md) and [development notes](docs/development.md). The earlier `app/` prototype is preserved in the initial Git commit and has been removed from the current working tree.
 
 Run the dependency-free unit tests with Node.js 22 or newer:
 

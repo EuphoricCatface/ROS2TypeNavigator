@@ -1,3 +1,6 @@
+/* Copyright (C) 2026 Seongyong Park and contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 // Development-only browser checks. Uses Node >=22 and installed browsers; no npm packages.
 import { createServer } from "node:http";
 import { readFile, writeFile, mkdtemp, rm } from "node:fs/promises";

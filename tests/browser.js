@@ -1,3 +1,6 @@
+/* Copyright (C) 2026 Seongyong Park and contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 (async function () {
   "use strict";
   const results = [];
