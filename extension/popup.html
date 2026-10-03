@@ -20,7 +20,7 @@
       <fieldset id="fields" disabled>
         <legend class="visually-hidden">Documentation destination</legend>
         <label for="distro">Distro</label>
-        <input id="distro" name="distro" list="distros" placeholder="rolling" autocomplete="off" spellcheck="false">
+        <input id="distro" name="distro" list="distros" placeholder="ex: rolling" autocomplete="off" spellcheck="false">
         <datalist id="distros">
           <option value="rolling"></option>
           <option value="lyrical"></option>
@@ -31,7 +31,7 @@
           <option value="galactic"></option>
         </datalist>
         <label for="pkg">Package</label>
-        <input id="pkg" name="pkg" placeholder="sensor_msgs" autocomplete="off" spellcheck="false" aria-describedby="navigation-hint">
+        <input id="pkg" name="pkg" placeholder="ex: sensor_msgs" autocomplete="off" spellcheck="false" aria-describedby="navigation-hint">
         <div class="interface-row">
           <div>
             <label for="type">Type</label>
@@ -42,7 +42,7 @@
           </div>
           <div>
             <label for="name">Name</label>
-            <input id="name" name="name" placeholder="PointCloud2" autocomplete="off" spellcheck="false" aria-describedby="navigation-hint">
+            <input id="name" name="name" placeholder="ex: PointCloud2" autocomplete="off" spellcheck="false" aria-describedby="navigation-hint">
           </div>
         </div>
         <p id="navigation-hint" class="hint">Leave Name empty to browse a package.<br>Leave Package empty to browse a distro.</p>

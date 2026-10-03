@@ -27,6 +27,7 @@
   border: 0;
   font: inherit;
   font-family: ui-monospace, monospace;
+  white-space: pre;
 }
 #ros2-type-navigator-definition a { text-decoration: underline; text-underline-offset: 0.15em; }
 #ros2-type-navigator-definition a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
