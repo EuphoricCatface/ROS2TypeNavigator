@@ -11,6 +11,7 @@ import { spawn } from "node:child_process";
 import assert from "node:assert/strict";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const manifest = JSON.parse(await readFile(resolve(root, "extension/manifest.json"), "utf8"));
 const browser = process.argv[2] || "chromium";
 if (!["chromium", "firefox"].includes(browser)) throw Error("Use chromium or firefox.");
 const live = process.argv.includes("--live");
@@ -92,7 +93,7 @@ try {
   profile = await mkdtemp(resolve(tmpdir(), "ros-navigator-browser-"));
   const firefoxUuid = "5fa40393-83a8-40ed-b50e-a71c1bc7e470";
   if (browser === "firefox") {
-    await writeFile(resolve(profile, "user.js"), `user_pref("extensions.webextensions.uuids", ${JSON.stringify(JSON.stringify({ "ros2-type-navigator@local.invalid": firefoxUuid }))});\n`);
+    await writeFile(resolve(profile, "user.js"), `user_pref("extensions.webextensions.uuids", ${JSON.stringify(JSON.stringify({ [manifest.browser_specific_settings.gecko.id]: firefoxUuid }))});\n`);
   }
   const args = browser === "chromium"
     ? ["--headless=new", `--user-data-dir=${profile}`, "--remote-debugging-port=0", "--enable-unsafe-extension-debugging", "--no-first-run", "--no-default-browser-check", "--disable-background-networking", "about:blank"]
