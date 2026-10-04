@@ -57,6 +57,7 @@ See the [privacy policy](PRIVACY.md) for data use, local storage, and retention 
 
 - The content script runs only on `https://docs.ros.org/en/*` and enhances canonical `/en/<distro>/p/<pkg>/{msg|srv}/<name>.html` pages.
 - `activeTab` reads the current tab's URL when you open the toolbar popup. `storage` remembers submitted values locally; nothing is synced or sent to an analytics service.
+- The extension cannot be enabled in private or incognito windows.
 - There is no background worker, documentation fetching, proxy, crawler, or hosted infrastructure. Normal navigation loads the official site in your browser.
 - Legacy ROS 1/Foxy pages, alternate documentation URL layouts, actions, and standalone IDL are not supported. Use the popup to navigate to a supported distro and package.
 - Missing or ambiguous Source blocks leave the page untouched. Unrecognized declarations remain plain text. The extension does not repair missing documentation or bypass site access challenges.

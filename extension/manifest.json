@@ -2,6 +2,7 @@
   "manifest_version": 3,
   "name": "ROS2 Type Navigator",
   "version": "0.1.0",
+  "incognito": "not_allowed",
   "description": "Follow message types in ROS 2 documentation and jump to packages and interfaces.",
   "permissions": ["activeTab", "storage"],
   "icons": {

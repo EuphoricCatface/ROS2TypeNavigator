@@ -14,6 +14,8 @@ The popup uses the distro, package, interface type (`msg` or `srv`), and interfa
 
 ## Local storage and retention
 
+The extension cannot be enabled in private or incognito windows, so it does not read or save navigation values from those windows.
+
 The extension stores one set of submitted navigation values—distro, package, type, and name—in the browser's local extension storage so it can restore them next time. These values are not synced through the browser's sync service or sent to the maintainer.
 
 For navigation in the current tab, the values are saved before navigation because navigating can close the popup. They may therefore remain saved even if navigation fails. For a new background tab, values are saved after the tab is created successfully. Unsubmitted edits and the separate Name drafts are not saved.
