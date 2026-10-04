@@ -63,6 +63,10 @@
     const controls = Object.fromEntries(Object.keys(core.DEFAULTS).map(key => [key, doc.getElementById(key)]));
     const values = await initialize(api);
     for (const [key, value] of Object.entries(values)) controls[key].value = value;
+    // Drafts belong only to this popup instance; only submitted values are saved.
+    const names = { msg: "", srv: "" };
+    let selectedType = controls.type.value;
+    names[selectedType] = controls.name.value;
     function updatePlaceholders() {
       const example = controls.type.value === "srv"
         ? { pkg: "nav_msgs", name: "SetMap" }
@@ -71,7 +75,13 @@
       controls.name.placeholder = `ex: ${example.name}`;
     }
     updatePlaceholders();
-    controls.type.addEventListener("change", updatePlaceholders);
+    controls.type.addEventListener("change", () => {
+      names[selectedType] = controls.name.value;
+      selectedType = controls.type.value;
+      controls.name.value = names[selectedType];
+      updatePlaceholders();
+      clearError();
+    });
     fields.disabled = false;
     const submit = createSubmitter(api, close);
 

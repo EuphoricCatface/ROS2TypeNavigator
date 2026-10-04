@@ -39,6 +39,8 @@ Follow type links in the added definition normally, including opening them in a 
 
 Click the toolbar button to open the navigator. It prefills from the current supported ROS page, or uses your last submitted values elsewhere. The first-use defaults are `rolling` and `msg`.
 
+Switching Type keeps separate message and service Name drafts while the popup is open. An unused type starts with an empty Name. These drafts are discarded when the popup closes; only submitted navigation values are saved locally.
+
 | Inputs | Go opens in a new tab |
 | --- | --- |
 | Distro only | Official package listing |
