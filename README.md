@@ -53,6 +53,8 @@ Left click Go or press Enter to open the destination in the current tab. Middle 
 
 ## Permissions and limits
 
+See the [privacy policy](PRIVACY.md) for data use, local storage, and retention details.
+
 - The content script runs only on `https://docs.ros.org/en/*` and enhances canonical `/en/<distro>/p/<pkg>/{msg|srv}/<name>.html` pages.
 - `activeTab` reads the current tab's URL when you open the toolbar popup. `storage` remembers submitted values locally; nothing is synced or sent to an analytics service.
 - There is no background worker, documentation fetching, proxy, crawler, or hosted infrastructure. Normal navigation loads the official site in your browser.
