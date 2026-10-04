@@ -105,6 +105,14 @@ Run unit tests, JavaScript/Python syntax checks, and manifest/resource validatio
 
 No npm packages are needed. The validator checks local resource paths (including the popup's scripts and styles), PNG icon dimensions, the scoped permissions, and the private-window restriction. These local checks do not replace store review. Browser checks remain separate below.
 
+Create release ZIPs with the same tools:
+
+```sh
+./script/package.py
+```
+
+This runs the test command first and writes `dist/ros2-type-navigator-<version>-firefox.zip` and `dist/ros2-type-navigator-<version>-chrome.zip`. Both place `manifest.json` at the archive root and include runtime files, LICENSE, and the privacy policy. The Firefox ZIP retains its Gecko settings; the Chrome ZIP omits those Firefox-specific settings. Tests, screenshots, promotional artwork, and developer scripts are excluded. Unchanged inputs produce identical ZIPs. The command does not publish or sign either package.
+
 For an interactive rendering/popup test harness, serve the repository locally (for example, `python3 -m http.server 8000 --bind 127.0.0.1`) and open `http://127.0.0.1:8000/tests/browser.html`. This server is only a development aid and is never needed to use the extension.
 
 Automated browser checks use the installed `chromium` or `firefox` executable and Node's built-in WebSocket support. No driver or npm package is needed:
@@ -130,7 +138,7 @@ Live checks depend on the ROS site's availability and acceptance of automated br
 - Node.js: 23 parser, routing, initialization, submission, and release-validation tests passed.
 - Chromium and Firefox: eight DOM/popup fixture checks passed in each, including action interfaces, reformatting changes, and storage failures, plus installed-extension injection, links, Back, current-tab navigation, background tab creation, and persisted values.
 - Branded Google Chrome was not available; Chromium was used for the Chromium-family checks.
-- Firefox also passed live enhancement checks on Humble's `action_msgs/srv/CancelGoal` and `sensor_msgs/msg/PointCloud2`, with the expected same-package and cross-package links.
+- Firefox also passed live enhancement checks on Humble's `action_msgs/srv/CancelGoal` and `sensor_msgs/msg/PointCloud2`, and Rolling's `control_msgs/action/FollowJointTrajectory`, with the expected same-package and cross-package message links.
 - A live Chromium check received the ROS site's Anubis **Access Denied** page, so live-site enhancement was not verified in that run. The extension correctly left the error page untouched.
 
 Before distributing a release, also check a real toolbar popup on ordinary and ROS tabs, keyboard navigation/Enter, light/dark appearance, denied site access, and a live message/service page in each target browser.
