@@ -86,6 +86,7 @@ See the [privacy policy](PRIVACY.md) for data use, local storage, and retention 
 extension/          Directly loadable Firefox/Chrome extension
 assets/             Promotional tile and artwork notes
 scripts/            Optional artwork rendering tool
+script/             Test, validation, and release commands
 tests/              Unit tests, browser harness, and fixtures
 docs/design.md      Behavior and constraints
 docs/development.md Development findings and repository history
@@ -96,11 +97,13 @@ See the [design specification](docs/design.md) and [development notes](docs/deve
 
 The [artwork notes](assets/README.md) describe the SVG icon, promotional tile, and optional PNG rendering command. All rendered assets are included in the repository.
 
-Run the dependency-free unit tests with Node.js 22 or newer:
+Run unit tests, JavaScript/Python syntax checks, and manifest/resource validation with Node.js 22.8 or newer and Python 3:
 
 ```sh
-node --test tests/*.test.cjs
+./script/test.mjs
 ```
+
+No npm packages are needed. The validator checks local resource paths (including the popup's scripts and styles), PNG icon dimensions, the scoped permissions, and the private-window restriction. These local checks do not replace store review. Browser checks remain separate below.
 
 For an interactive rendering/popup test harness, serve the repository locally (for example, `python3 -m http.server 8000 --bind 127.0.0.1`) and open `http://127.0.0.1:8000/tests/browser.html`. This server is only a development aid and is never needed to use the extension.
 
@@ -124,7 +127,7 @@ Live checks depend on the ROS site's availability and acceptance of automated br
 
 ### Validation record
 
-- Node.js 26.9.0: 22 parser, routing, initialization, and submission tests passed.
+- Node.js: 23 parser, routing, initialization, submission, and release-validation tests passed.
 - Chromium and Firefox: eight DOM/popup fixture checks passed in each, including action interfaces, reformatting changes, and storage failures, plus installed-extension injection, links, Back, current-tab navigation, background tab creation, and persisted values.
 - Branded Google Chrome was not available; Chromium was used for the Chromium-family checks.
 - Firefox also passed live enhancement checks on Humble's `action_msgs/srv/CancelGoal` and `sensor_msgs/msg/PointCloud2`, with the expected same-package and cross-package links.
