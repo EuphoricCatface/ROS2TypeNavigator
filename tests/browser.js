@@ -85,7 +85,7 @@
       readSaved: async () => undefined,
       createTab: async url => { calls.push(["create", url]); return { id: 2 }; },
       save: async values => calls.push(["save", values]),
-      activateTab: async id => calls.push(["activate", id]),
+      navigateCurrent: async url => calls.push(["navigate", url]),
     };
     await globalThis.ROSTypeNavigatorPopup.mount(doc, api, () => calls.push(["close"]));
     assert(doc.getElementById("name").value === "CancelGoal", "name not prefilled");
@@ -139,9 +139,25 @@
     assert(doc.getElementById("error").hidden, "error not cleared on edit");
     form.requestSubmit();
     await tick();
-    assert(calls.map(call => call[0]).join(",") === "create,save,activate,close", "incorrect submit lifecycle");
-    assert(calls[0][1] === serviceUrl, "wrong navigation URL");
+    assert(calls.map(call => call[0]).join(",") === "save,navigate,close", "incorrect submit lifecycle");
+    assert(calls[1][1] === serviceUrl, "wrong navigation URL");
     assert(!doc.getElementById("go").disabled, "submit remains disabled");
+    calls.length = 0;
+    const go = doc.getElementById("go");
+    doc.getElementById("pkg").value = "";
+    go.dispatchEvent(new MouseEvent("auxclick", { button: 1, bubbles: true, cancelable: true }));
+    await tick();
+    assert(calls.length === 0 && !doc.getElementById("error").hidden, "middle click bypassed validation");
+    doc.getElementById("pkg").value = "action_msgs";
+    go.dispatchEvent(new MouseEvent("auxclick", { button: 2, bubbles: true }));
+    await tick();
+    assert(calls.length === 0, "right click navigated");
+    go.dispatchEvent(new MouseEvent("auxclick", { button: 1, bubbles: true, cancelable: true }));
+    await tick();
+    assert(calls.map(call => call[0]).join(",") === "create,save,close", "middle click did not open a new tab");
+    assert(calls[0][1] === serviceUrl, "wrong middle-click destination");
+    assert(doc.getElementById("error").hidden, "valid middle click left a stale error");
+
     assert(doc.documentElement.scrollWidth <= frame.clientWidth, "popup overflows horizontally");
   });
 

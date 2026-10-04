@@ -21,8 +21,8 @@
       async createTab(url) {
         return extension.tabs.create({ url, active: false });
       },
-      async activateTab(id) {
-        return extension.tabs.update(id, { active: true });
+      async navigateCurrent(url) {
+        return extension.tabs.update({ url });
       },
     };
   }
@@ -35,20 +35,22 @@
 
   function createSubmitter(api, close) {
     let submitting = false;
-    return async function submit(input) {
+    return async function submit(input, newTab = false) {
       if (submitting) return { ok: false, busy: true };
       const target = core.destination(input);
       if (!target.ok) return target;
       submitting = true;
       try {
-        let tab;
-        try { tab = await api.createTab(target.url); }
-        catch { return { ok: false, error: "Could not open the documentation. Please try again." }; }
-        // Activating the new tab closes an action popup. Save before activation,
-        // after creation succeeds, so neither popup teardown nor a failed open loses state.
-        try { await api.save(target.values); } catch { /* Navigation does not depend on storage. */ }
-        try { await api.activateTab(tab.id); }
-        catch { return { ok: false, error: "The documentation opened in a background tab, but could not be selected. Switch to that tab to view it." }; }
+        if (newTab) {
+          try { await api.createTab(target.url); }
+          catch { return { ok: false, error: "Could not open the documentation. Please try again." }; }
+          try { await api.save(target.values); } catch { /* Navigation does not depend on storage. */ }
+        } else {
+          // Navigating the active tab can tear down its action popup. Save first.
+          try { await api.save(target.values); } catch { /* Navigation does not depend on storage. */ }
+          try { await api.navigateCurrent(target.url); }
+          catch { return { ok: false, error: "Could not open the documentation in this tab. Please try again." }; }
+        }
         close();
         return { ok: true };
       } finally { submitting = false; }
@@ -96,13 +98,12 @@
       }
     }
     form.addEventListener("input", clearError);
-    form.addEventListener("submit", async event => {
-      event.preventDefault();
+    async function navigate(newTab = false) {
       if (button.disabled) return;
       clearError();
       button.disabled = true;
       try {
-        const result = await submit(Object.fromEntries(Object.entries(controls).map(([key, input]) => [key, input.value])));
+        const result = await submit(Object.fromEntries(Object.entries(controls).map(([key, input]) => [key, input.value])), newTab);
         if (!result.ok && !result.busy) {
           error.textContent = result.error;
           error.hidden = false;
@@ -114,6 +115,18 @@
           }
         }
       } finally { button.disabled = false; }
+    }
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      navigate();
+    });
+    button.addEventListener("mousedown", event => {
+      if (event.button === 1) event.preventDefault();
+    });
+    button.addEventListener("auxclick", event => {
+      if (event.button !== 1) return;
+      event.preventDefault();
+      navigate(true);
     });
   }
 

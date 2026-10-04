@@ -228,16 +228,21 @@ try {
     window.close = () => { window.testCloseCalled = true; };
     (globalThis.browser || chrome).tabs.onCreated.addListener(tab => { window.testCreatedId = tab.id; });
     for (const [key, value] of Object.entries({ distro: 'humble', pkg: 'action_msgs', type: 'srv', name: 'CancelGoal' })) document.getElementById(key).value = value;
-    document.getElementById('navigator').requestSubmit();
+    document.getElementById('go').dispatchEvent(new MouseEvent('auxclick', {button:1,bubbles:true,cancelable:true}));
     return true;
   })()`);
   await until(() => evaluate("window.testCloseCalled === true"), "native tab creation and storage");
   const stored = await evaluate("(async () => (await (globalThis.browser || chrome).storage.local.get('lastNavigation')).lastNavigation)()");
   assert.deepEqual(stored, { distro: "humble", pkg: "action_msgs", type: "srv", name: "CancelGoal" });
   const active = await evaluate("(async () => (await (globalThis.browser || chrome).tabs.query({active:true,currentWindow:true}))[0].id)()");
-  assert.equal(active, await evaluate("window.testCreatedId"));
+  assert.notEqual(active, await evaluate("window.testCreatedId"));
   assert.ok((await tabUrls()).includes(fixtureUrl), "Submitted URL was not opened");
-  console.log("Installed extension: popup created a foreground tab and persisted the submitted values.");
+  console.log("Installed extension: middle click created a background tab and persisted the submitted values.");
+  const tabsBefore = (await tabUrls()).length;
+  await evaluate("(document.getElementById('go').click(), true)");
+  await until(() => evaluate(`location.href === ${JSON.stringify(fixtureUrl)} && !!document.getElementById('ros2-type-navigator-definition')`), "left-click current-tab navigation");
+  assert.equal((await tabUrls()).length, tabsBefore, "Left click created a new tab");
+  console.log("Installed extension: left click navigated the current tab without creating another.");
   await removeInterception();
   assert.deepEqual(protocol.eventErrors, [], "Browser interception failed");
 

@@ -13,7 +13,7 @@ function fake(overrides = {}) {
     currentUrl: async () => "about:blank", readSaved: async () => values,
     createTab: async url => { calls.push(["create", url]); return { id: 7 }; },
     save: async input => { calls.push(["save", input]); },
-    activateTab: async id => { calls.push(["activate", id]); },
+    navigateCurrent: async url => { calls.push(["navigate", url]); },
     ...overrides,
   };
   return { api, calls, close: () => calls.push(["close"]) };
@@ -31,16 +31,16 @@ test("initialization tolerates unavailable tab URLs and storage failures", async
   }).api), core.DEFAULTS);
 });
 
-test("saves only after tab creation, before activating and closing the popup", async () => {
+test("middle click creates a background tab, then saves and closes the popup", async () => {
   const f = fake();
-  assert.deepEqual(await popup.createSubmitter(f.api, f.close)(values), { ok: true });
-  assert.deepEqual(f.calls, [["create", "https://docs.ros.org/en/jazzy/p/sensor_msgs/msg/PointCloud2.html"], ["save", values], ["activate", 7], ["close"]]);
+  assert.deepEqual(await popup.createSubmitter(f.api, f.close)(values, true), { ok: true });
+  assert.deepEqual(f.calls, [["create", "https://docs.ros.org/en/jazzy/p/sensor_msgs/msg/PointCloud2.html"], ["save", values], ["close"]]);
 });
 
 test("storage failure does not prevent navigation", async () => {
   const f = fake({ save: async () => { throw Error("unavailable"); } });
   assert.equal((await popup.createSubmitter(f.api, f.close)(values)).ok, true);
-  assert.deepEqual(f.calls.map(call => call[0]), ["create", "activate", "close"]);
+  assert.deepEqual(f.calls.map(call => call[0]), ["navigate", "close"]);
 });
 
 test("invalid input does not open or save anything", async () => {
@@ -54,16 +54,27 @@ test("creation failure leaves the popup open, preserves stored values, and permi
   let fail = true;
   const f = fake({ createTab: async () => { if (fail) throw Error("failed"); return { id: 7 }; } });
   const submit = popup.createSubmitter(f.api, f.close);
-  assert.match((await submit(values)).error, /Could not open/);
+  assert.match((await submit(values, true)).error, /Could not open/);
   assert.deepEqual(f.calls, []);
   fail = false;
-  assert.equal((await submit(values)).ok, true);
+  assert.equal((await submit(values, true)).ok, true);
 });
 
-test("activation failure accurately reports the existing background tab", async () => {
-  const f = fake({ activateTab: async () => { throw Error("failed"); } });
-  assert.match((await popup.createSubmitter(f.api, f.close)(values)).error, /background tab/);
-  assert.ok(!f.calls.some(call => call[0] === "close"));
+test("left click saves before navigating the current tab and closes on success", async () => {
+  const f = fake();
+  assert.equal((await popup.createSubmitter(f.api, f.close)(values)).ok, true);
+  assert.deepEqual(f.calls, [["save", values], ["navigate", "https://docs.ros.org/en/jazzy/p/sensor_msgs/msg/PointCloud2.html"], ["close"]]);
+});
+
+test("current-tab failure keeps the popup open and permits retry", async () => {
+  let fail = true;
+  const f = fake({ navigateCurrent: async url => { if (fail) throw Error("failed"); f.calls.push(["navigate", url]); } });
+  const submit = popup.createSubmitter(f.api, f.close);
+  assert.match((await submit(values)).error, /in this tab/);
+  assert.deepEqual(f.calls, [["save", values]]);
+  fail = false;
+  assert.equal((await submit(values)).ok, true);
+  assert.equal(f.calls.at(-1)[0], "close");
 });
 
 test("concurrent submissions open exactly one tab", async () => {
@@ -71,7 +82,7 @@ test("concurrent submissions open exactly one tab", async () => {
   let count = 0;
   const f = fake({ createTab: async () => { count++; return new Promise(resolve => { release = () => resolve({ id: 7 }); }); } });
   const submit = popup.createSubmitter(f.api, f.close);
-  const first = submit(values);
+  const first = submit(values, true);
   assert.deepEqual(await submit(values), { ok: false, busy: true });
   release();
   await first;
@@ -92,6 +103,6 @@ test("browser adapter uses narrow tab and local-storage APIs", async () => {
   assert.deepEqual(await api.readSaved(), values);
   await api.createTab("https://docs.ros.org/en/rolling/p/");
   await api.save(values);
-  await api.activateTab(3);
-  assert.deepEqual(calls, [{ active: true, currentWindow: true }, { url: "https://docs.ros.org/en/rolling/p/", active: false }, { lastNavigation: values }, [3, { active: true }]]);
+  await api.navigateCurrent("https://docs.ros.org/en/rolling/p/");
+  assert.deepEqual(calls, [{ active: true, currentWindow: true }, { url: "https://docs.ros.org/en/rolling/p/", active: false }, { lastNavigation: values }, [{ url: "https://docs.ros.org/en/rolling/p/" }, undefined]]);
 });

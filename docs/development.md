@@ -8,7 +8,7 @@ The original idea was a GitHub Pages app that fetched and parsed official ROS do
 
 Server-side fetching, prebuilt documentation snapshots, and a proxy were considered. The project owner's preference was to avoid backend and crawling infrastructure. The extension instead reads the already loaded documentation page and navigates using ordinary links. The popup constructs official URLs without fetching package catalogs.
 
-The first version preserves the original Source block and adds a compact linked definition below it. The popup opens destinations in new tabs, defaults to `rolling` and `msg`, and remembers submitted values locally. Firefox and Chrome local installs are the delivery target; store publication and signing are deferred.
+The extension preserves the original Source block and adds a compact linked definition below it. The popup defaults to `rolling` and `msg`, and remembers submitted values locally. Go navigates the current tab on left click or Enter, and creates a background tab on middle click. Firefox and Chrome local installs are the delivery target; store publication and signing are deferred.
 
 See [design.md](design.md) for the current behavior, supported URLs, and parsing scope.
 
@@ -17,7 +17,7 @@ See [design.md](design.md) for the current behavior, supported URLs, and parsing
 - **Type extraction:** A greedy match through the last whitespace can consume field names, comments, and defaults. Parse the first declaration token, recognize bounded strings and array suffixes, and preserve literal contents.
 - **Service references:** A field in a service still refers to a message. For example, `CancelGoal` must link `GoalInfo` to `action_msgs/msg/GoalInfo`, keeping the current distro.
 - **Source extraction:** Syntax-highlighting spans split the HTML into pieces. Read the associated code block's `textContent`, and keep the original block intact. Missing or ambiguous source blocks leave the page unchanged.
-- **Popup lifetime:** Activating a new tab closes a toolbar popup. Create the destination tab in the background, save the values after creation succeeds, then activate it. A storage failure must not block navigation.
+- **Popup lifetime:** Current-tab navigation can close a toolbar popup, so save submitted values before updating its URL. Middle-click navigation creates a background tab, saves after creation succeeds, then closes the popup. A storage failure must not block navigation. Separate message/service Name drafts live only in the popup's memory.
 - **Narrow permissions:** An extension page opened as a normal tab does not itself grant the toolbar's `activeTab` permission. Browser automation verifies the created tab through the debugging protocol rather than adding broad permissions to the extension.
 - **Firefox automation:** Direct BiDi navigation and screenshots of extension pages have restrictions. The test driver uses a disposable browser profile and privileged access to its own test window to open the installed popup page. These privileges belong to the test driver, not the shipped extension.
 - **Live-site availability:** An automated Chromium request received an Anubis Access Denied page. Firefox successfully loaded and enhanced the live Humble `CancelGoal` and `PointCloud2` pages. Fixture checks and live checks are reported separately.

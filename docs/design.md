@@ -84,9 +84,9 @@ Clicking the extension's toolbar button opens a small popup with:
 - **Name:** text input, preserving case.
 - **Go:** submit button; Enter also submits.
 
-Package and Name placeholders show examples for the selected Type: `visualization_msgs/msg/Marker` for messages and `nav_msgs/srv/SetMap` for services. Apply them when initializing the popup and whenever Type changes. Keep examples prefixed with `ex:`; changing Type updates placeholders without replacing entered or restored values.
+Package and Name placeholders show examples for the selected Type: `visualization_msgs/msg/Marker` for messages and `nav_msgs/srv/SetMap` for services. Apply them when initializing the popup and whenever Type changes. Keep examples prefixed with `ex:`. Changing Type preserves Package and swaps between separate in-memory Name drafts. Initialize the selected type's draft from the prefilled Name and the other draft as empty; discard both when the popup closes.
 
-When opened on a supported ROS URL, populate the available fields from that URL. On a package or distro listing, leave the more specific fields blank and select `msg`. On other pages, restore the last successfully submitted values, or start with `rolling`, an empty package/name, and `msg` if there are none. `rolling` is the confirmed initial default; it is an explicit setting rather than an automatically discovered latest release.
+When opened on a supported ROS URL, populate the available fields from that URL. On a package or distro listing, leave the more specific fields blank and select `msg`. On other pages, restore the last submitted values, or start with `rolling`, an empty package/name, and `msg` if there are none. `rolling` is the confirmed initial default; it is an explicit setting rather than an automatically discovered latest release.
 
 Trim surrounding whitespace on submission. An empty distro resolves to the initial default. Require distro and package values to match `[a-z][a-z0-9_]*`, and interface names to match `[A-Z][A-Za-z0-9]*`, matching each whole value. Validate `type` as `msg` or `srv` even though the normal control is a select. Reject invalid input in the popup before navigation.
 
@@ -99,9 +99,9 @@ Trim surrounding whitespace on submission. An empty distro resolves to the initi
 
 The selected type does not affect the destination when name is empty. This version uses the official listing pages rather than downloading package/interface lists into the popup.
 
-Go opens the destination in a new foreground tab and closes the popup. Save successfully submitted values locally for reuse. Unsubmitted edits may be discarded when the popup closes. Inputs have visible labels; validation errors explain which field needs correction.
+Left click Go or press Enter to navigate the current tab. Middle click Go to open a new background tab. Both paths validate the inputs and close the popup on success; right click does not navigate. Inputs have visible labels; validation errors explain which field needs correction.
 
-To avoid losing state when activation closes the popup, first create the tab in the background, save the submitted values, then activate it. Storage failure must not prevent navigation. Failed tab creation leaves the popup open and does not change saved values. Failed activation reports that the new page is available in a background tab.
+Current-tab navigation can tear down the popup, so save valid submitted values locally before navigating. If navigation fails, leave the popup open with an error; the submitted values may already be saved. For middle click, create the background tab first, then save and close. Failed tab creation leaves saved values unchanged. Storage failure must not prevent either navigation path. No separate Name drafts are persisted.
 
 ## Extension structure and permissions
 

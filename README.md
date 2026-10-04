@@ -41,13 +41,15 @@ Click the toolbar button to open the navigator. It prefills from the current sup
 
 Switching Type keeps separate message and service Name drafts while the popup is open. An unused type starts with an empty Name. These drafts are discarded when the popup closes; only submitted navigation values are saved locally.
 
-| Inputs | Go opens in a new tab |
+| Inputs | Destination |
 | --- | --- |
 | Distro only | Official package listing |
 | Distro + Package | Official package landing page |
 | Distro + Package + Type + Name | Official message or service page |
 
 An empty distro uses `rolling`. Type does not affect listing destinations. The distro suggestions are optional: you can type a future distro name without updating the extension.
+
+Left click Go or press Enter to open the destination in the current tab. Middle click Go to open it in a new background tab.
 
 ## Permissions and limits
 
@@ -102,8 +104,8 @@ Live checks depend on the ROS site's availability and acceptance of automated br
 
 ### Validation record
 
-- Node.js 26.9.0: 19 parser, routing, initialization, and submission tests passed.
-- Chromium 153.0.8010.52 and Firefox 156.0: six DOM/popup fixture checks passed in each, plus installed-extension injection, links, Back, foreground tab creation, and persisted values.
+- Node.js 26.9.0: 20 parser, routing, initialization, and submission tests passed.
+- Chromium 153.0.8010.52 and Firefox 156.0: six DOM/popup fixture checks passed in each, plus installed-extension injection, links, Back, current-tab navigation, background tab creation, and persisted values.
 - Branded Google Chrome was not available; Chromium was used for the Chromium-family checks.
 - Firefox also passed live enhancement checks on Humble's `action_msgs/srv/CancelGoal` and `sensor_msgs/msg/PointCloud2`, with the expected same-package and cross-package links.
 - A live Chromium check received the ROS site's Anubis **Access Denied** page, so live-site enhancement was not verified in that run. The extension correctly left the error page untouched.
