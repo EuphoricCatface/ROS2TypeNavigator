@@ -60,6 +60,8 @@ An empty distro uses `rolling`. Type does not affect listing destinations. The d
 
 ```text
 extension/          Directly loadable Firefox/Chrome extension
+assets/             Promotional tile and artwork notes
+scripts/            Optional artwork rendering tool
 tests/              Unit tests, browser harness, and fixtures
 docs/design.md      Behavior and constraints
 docs/development.md Development findings and repository history
@@ -67,6 +69,8 @@ LICENSE             GNU GPL version 3; this project permits later versions
 ```
 
 See the [design specification](docs/design.md) and [development notes](docs/development.md). The earlier `app/` prototype is preserved in the initial Git commit and has been removed from the current working tree.
+
+The [artwork notes](assets/README.md) describe the SVG icon, promotional tile, and optional PNG rendering command. All rendered assets are included in the repository.
 
 Run the dependency-free unit tests with Node.js 22 or newer:
 

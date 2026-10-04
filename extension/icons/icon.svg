@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (C) 2026 Seongyong Park and contributors
+     SPDX-License-Identifier: GPL-3.0-or-later -->
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-labelledby="title description">
+  <title id="title">ROS2 Type Navigator</title>
+  <desc id="description">A folded document with bold black ROS lettering above a branching directed graph of four dark blue nodes.</desc>
+  <g id="document-icon">
+    <path d="M24 8H84L112 36V110Q112 120 102 120H24Q14 120 14 110V18Q14 8 24 8Z" fill="#fff" stroke="#181818" stroke-width="4" stroke-linejoin="round"/>
+    <text x="64" y="56" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="31" font-weight="700" fill="#000">ROS</text>
+    <path d="M84 8V26Q84 36 94 36H112" fill="#e8f0f6" stroke="#181818" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M84 8L112 36" fill="none" stroke="#181818" stroke-width="4" stroke-linecap="round"/>
+    <g fill="#22314e" stroke="#22314e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M39.87 81.41L46.51 83.25M67.80 82.52L77.46 76.97M68.25 90.59L83.96 97.42M91.52 78.79L93.82 89.32" fill="none"/>
+      <g stroke="none">
+        <path d="M45.57 86.63L53.26 85.13L47.45 79.88Z"/>
+        <path d="M79.20 80.01L83.53 73.49L75.72 73.94Z"/>
+        <path d="M82.57 100.63L90.38 100.21L85.36 94.21Z"/>
+        <path d="M90.40 90.07L95.31 96.16L97.24 88.58Z"/>
+        <circle cx="31.2" cy="79" r="6"/>
+        <circle cx="60" cy="87" r="6"/>
+        <circle cx="89.6" cy="70" r="6"/>
+        <circle cx="96.8" cy="103" r="6"/>
+      </g>
+    </g>
+  </g>
+</svg>
