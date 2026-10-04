@@ -14,6 +14,7 @@
   const page = globalThis.ROSTypeNavigatorPage;
   const messageUrl = "https://docs.ros.org/en/humble/p/sensor_msgs/msg/PointCloud2.html";
   const serviceUrl = "https://docs.ros.org/en/humble/p/action_msgs/srv/CancelGoal.html";
+  const actionUrl = "https://docs.ros.org/en/rolling/p/control_msgs/action/FollowJointTrajectory.html";
   const sectionId = "ros2-type-navigator-definition";
   const section = doc => doc.getElementById(sectionId);
   const tick = () => new Promise(resolve => setTimeout(resolve, 0));
@@ -78,8 +79,23 @@
     assert(section(doc).textContent.includes("int8 ERROR_NONE=0"), "constant lost");
   });
 
+  await test("action: goal/result/feedback split and cross-package and local message links", async () => {
+    const doc = await fixture("action");
+    const source = page.findSource(doc);
+    const before = source.block.outerHTML;
+    assert(page.enhance(doc, actionUrl), "action was not enhanced");
+    assert(source.block.outerHTML === before, "original action definition changed");
+    assert([...section(doc).querySelectorAll("h3")].map(el => el.textContent).join(",") === "Goal,Result,Feedback", "action labels missing");
+    const links = [...section(doc).querySelectorAll("a")];
+    assert(links.length === 7, "wrong action link count");
+    assert(links[0].href === "https://docs.ros.org/en/rolling/p/trajectory_msgs/msg/JointTrajectory.html", "wrong goal message reference");
+    assert(links[1].href === "https://docs.ros.org/en/rolling/p/control_msgs/msg/JointTolerance.html", "wrong local message reference");
+    assert(links.every(link => link.href.includes("/msg/")), "action field linked to action interface");
+    assert(section(doc).textContent.includes("int32 INVALID_GOAL=-1"), "action result constant missing");
+  });
+
   await test("empty messages and service halves display (empty)", () => {
-    for (const [source, url, count] of [["# only comments", messageUrl, 1], ["---", serviceUrl, 2]]) {
+    for (const [source, url, count] of [["# only comments", messageUrl, 1], ["---", serviceUrl, 2], ["---\n---", actionUrl, 3]]) {
       const doc = parser.parseFromString("<main><p><strong>Source</strong></p><pre></pre></main>", "text/html");
       doc.querySelector("pre").textContent = source;
       page.enhance(doc, url);
@@ -170,6 +186,19 @@
     reopenedType.value = "msg";
     reopenedType.dispatchEvent(new Event("change", { bubbles: true }));
     assert(reopened.getElementById("name").value === "", "reopening retained an unsubmitted message draft");
+    type.value = "action";
+    type.dispatchEvent(new Event("change", { bubbles: true }));
+    assert(name.value === "" && name.placeholder === "ex: FollowJointTrajectory" && doc.getElementById("pkg").placeholder === "ex: control_msgs", "action name or examples were not initialized");
+    name.value = "FollowJointTrajectory";
+    type.value = "srv";
+    type.dispatchEvent(new Event("change", { bubbles: true }));
+    assert(name.value === "EditedService", "action switching lost service draft");
+    type.value = "action";
+    type.dispatchEvent(new Event("change", { bubbles: true }));
+    assert(name.value === "FollowJointTrajectory", "action draft was lost");
+    const actionPopup = parser.parseFromString(doc.documentElement.outerHTML, "text/html");
+    await globalThis.ROSTypeNavigatorPopup.mount(actionPopup, { ...api, currentUrl: async () => actionUrl }, () => {});
+    assert(actionPopup.getElementById("type").value === "action" && actionPopup.getElementById("name").value === "FollowJointTrajectory", "action popup prefill failed");
     type.value = "srv";
     type.dispatchEvent(new Event("change", { bubbles: true }));
     name.value = "CancelGoal";

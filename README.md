@@ -1,8 +1,8 @@
 # ROS2 Type Navigator
 
-A small Firefox/Chrome extension that adds clickable message types to official ROS 2 documentation. A toolbar popup jumps to distro listings, packages, messages, and services.
+A small Firefox/Chrome extension that adds clickable message types to official ROS 2 documentation. A toolbar popup jumps to distro listings, packages, messages, services, and actions.
 
-The original Source block stays intact. A **Navigable definition** appears below it, with comments removed and message types linked across packages. Service request and response sections stay separate.
+The original Source block stays intact. A **Navigable definition** appears below it, with comments removed and message types linked across packages. Service request/response and action goal/result/feedback sections stay separate.
 
 ## Screenshots
 
@@ -48,12 +48,13 @@ Visit a supported interface page, such as:
 
 - [PointCloud2 (Humble)](https://docs.ros.org/en/humble/p/sensor_msgs/msg/PointCloud2.html)
 - [CancelGoal (Humble)](https://docs.ros.org/en/humble/p/action_msgs/srv/CancelGoal.html)
+- [FollowJointTrajectory (Rolling)](https://docs.ros.org/en/rolling/p/control_msgs/action/FollowJointTrajectory.html)
 
-Follow type links in the added definition normally, including opening them in a new tab or using Back. References always keep the current distro. Message fields inside a service correctly link to message definitions.
+Follow type links in the added definition normally, including opening them in a new tab or using Back. References always keep the current distro. Message fields inside services and actions correctly link to message definitions.
 
 Click the toolbar button to open the navigator. It prefills from the current supported ROS page, or uses your last submitted values elsewhere. The first-use defaults are `rolling` and `msg`.
 
-Switching Type keeps separate message and service Name drafts while the popup is open. An unused type starts with an empty Name. These drafts are discarded when the popup closes; only submitted navigation values are saved locally.
+Switching Type keeps separate message, service, and action Name drafts while the popup is open. An unused type starts with an empty Name. These drafts are discarded when the popup closes; only submitted navigation values are saved locally.
 
 The **Reformat interface definitions** checkbox enables or disables the added definitions across documentation tabs immediately. It defaults to enabled and is remembered locally. The navigator remains available when reformatting is disabled.
 
@@ -71,11 +72,11 @@ Left click Go or press Enter to open the destination in the current tab. Middle 
 
 See the [privacy policy](PRIVACY.md) for data use, local storage, and retention details.
 
-- The content script runs only on `https://docs.ros.org/en/*` and enhances canonical `/en/<distro>/p/<pkg>/{msg|srv}/<name>.html` pages.
+- The content script runs only on `https://docs.ros.org/en/*` and enhances canonical `/en/<distro>/p/<pkg>/{msg|srv|action}/<name>.html` pages.
 - `activeTab` reads the current tab's URL when you open the toolbar popup. `storage` remembers submitted values locally; nothing is synced or sent to an analytics service.
 - The extension cannot be enabled in private or incognito windows.
 - There is no background worker, documentation fetching, proxy, crawler, or hosted infrastructure. Normal navigation loads the official site in your browser.
-- Legacy ROS 1/Foxy pages, alternate documentation URL layouts, actions, and standalone IDL are not supported. Use the popup to navigate to a supported distro and package.
+- Legacy ROS 1/Foxy pages, alternate documentation URL layouts, and standalone IDL are not supported. Use the popup to navigate to a supported distro and package.
 - Missing or ambiguous Source blocks leave the page untouched. Unrecognized declarations remain plain text. The extension does not repair missing documentation or bypass site access challenges.
 - The changes are local to your browser and do not affect search-engine rankings.
 
@@ -123,8 +124,8 @@ Live checks depend on the ROS site's availability and acceptance of automated br
 
 ### Validation record
 
-- Node.js 26.9.0: 20 parser, routing, initialization, and submission tests passed.
-- Chromium and Firefox: seven DOM/popup fixture checks passed in each, including reformatting changes and storage failures, plus installed-extension injection, links, Back, current-tab navigation, background tab creation, and persisted values.
+- Node.js 26.9.0: 22 parser, routing, initialization, and submission tests passed.
+- Chromium and Firefox: eight DOM/popup fixture checks passed in each, including action interfaces, reformatting changes, and storage failures, plus installed-extension injection, links, Back, current-tab navigation, background tab creation, and persisted values.
 - Branded Google Chrome was not available; Chromium was used for the Chromium-family checks.
 - Firefox also passed live enhancement checks on Humble's `action_msgs/srv/CancelGoal` and `sensor_msgs/msg/PointCloud2`, with the expected same-package and cross-package links.
 - A live Chromium check received the ROS site's Anubis **Access Denied** page, so live-site enhancement was not verified in that run. The extension correctly left the error page untouched.

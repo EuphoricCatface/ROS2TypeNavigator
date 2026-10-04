@@ -21,7 +21,7 @@ test("builds all three navigation levels and normalizes submitted values", () =>
 test("rejects incomplete input, unknown kinds, and URL/path injection", () => {
   for (const input of [
     { name: "Pose" }, { pkg: "../sensor_msgs" }, { distro: "https://evil.example" },
-    { distro: "humble/x" }, { type: "action" }, { type: "" },
+    { distro: "humble/x" }, { type: "unknown" }, { type: "" },
     { pkg: "sensor_msgs", name: "PointCloud2?x=y" }, { pkg: "sensor_msgs", name: "point_cloud" },
   ]) assert.equal(core.destination({ ...core.DEFAULTS, ...input }).ok, false, JSON.stringify(input));
 });
@@ -32,7 +32,7 @@ test("recognizes canonical documentation URLs and ignores queries/fragments", ()
   assert.deepEqual(core.parseUrl(base), { ...context, pkg: "", name: "" });
   for (const url of [
     "about:blank", "https://docs.ros.org.evil.example/en/humble/p/action_msgs/",
-    "http://docs.ros.org/en/humble/p/action_msgs/", `${base}action_msgs/action/Goal.html`,
+    "http://docs.ros.org/en/humble/p/action_msgs/", `${base}action_msgs/unknown/Goal.html`,
     `${base}action_msgsmsg/GoalInfo.html`, `${base}action_msgs/interfaces/msg/GoalInfo.html`,
     "https://docs.ros2.org/foxy/api/sensor_msgs/msg/PointCloud2.html",
     "https://user@docs.ros.org/en/humble/p/", "https://docs.ros.org/en/ros2_packages/humble/api/std_msgs/",
@@ -42,7 +42,7 @@ test("recognizes canonical documentation URLs and ignores queries/fragments", ()
 test("current page wins over saved values; invalid saved values fall back to defaults", () => {
   assert.deepEqual(core.initialValues(base, context), { ...core.DEFAULTS, distro: "humble" });
   assert.deepEqual(core.initialValues("about:blank", context), context);
-  assert.deepEqual(core.initialValues("about:blank", { type: "action" }), core.DEFAULTS);
+  assert.deepEqual(core.initialValues("about:blank", { type: "unknown" }), core.DEFAULTS);
   assert.deepEqual(core.initialValues(undefined, undefined), core.DEFAULTS);
   assert.deepEqual(core.initialValues(undefined, null), core.DEFAULTS);
 });
@@ -98,5 +98,33 @@ test("malformed service sections stay readable without guessed structure", () =>
     assert.equal(groups.length, 1);
     assert.equal(groups[0].label, "");
     assert.ok(groups[0].lines.every(line => line.href === null));
+  }
+});
+
+test("builds and prefills action URLs from current pages and saved values", () => {
+  const values = { distro: "rolling", pkg: "control_msgs", type: "action", name: "FollowJointTrajectory" };
+  const url = "https://docs.ros.org/en/rolling/p/control_msgs/action/FollowJointTrajectory.html";
+  assert.equal(core.destination(values).url, url);
+  assert.deepEqual(core.parseUrl(`${url}#source`), values);
+  assert.deepEqual(core.initialValues(url, context), values);
+  assert.deepEqual(core.initialValues("about:blank", values), values);
+});
+
+test("splits action goal, result, and feedback while keeping references in msg", () => {
+  const action = { distro: "rolling", pkg: "control_msgs", type: "action" };
+  const groups = core.parseDefinition('trajectory_msgs/JointTrajectory trajectory\nJointTolerance[] path_tolerance\n--- # result\nint32 SUCCESSFUL = 0\nstring error_string "literal ---"\n---\nstd_msgs/Header header', action);
+  assert.deepEqual(groups.map(group => group.label), ["Goal", "Result", "Feedback"]);
+  assert.equal(groups[0].lines[0].href, "https://docs.ros.org/en/rolling/p/trajectory_msgs/msg/JointTrajectory.html");
+  assert.equal(groups[0].lines[1].href, "https://docs.ros.org/en/rolling/p/control_msgs/msg/JointTolerance.html");
+  assert.equal(groups[1].lines[0].text, "int32 SUCCESSFUL=0");
+  assert.equal(groups[2].lines[0].href, "https://docs.ros.org/en/rolling/p/std_msgs/msg/Header.html");
+  assert.deepEqual(core.parseDefinition("---\n---", action), [
+    { label: "Goal", lines: [] }, { label: "Result", lines: [] }, { label: "Feedback", lines: [] },
+  ]);
+  for (const source of ["JointTolerance tolerance", "---", "---\n---\n---"]) {
+    const malformed = core.parseDefinition(source, action);
+    assert.equal(malformed.length, 1);
+    assert.equal(malformed[0].label, "");
+    assert.ok(malformed[0].lines.every(line => line.href === null));
   }
 });

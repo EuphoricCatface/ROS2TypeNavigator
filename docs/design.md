@@ -9,11 +9,11 @@ This project improves browsing by adding navigable type links to the official pa
 ## Target and scope
 
 - A Firefox and Chrome extension using plain JavaScript, HTML, CSS, and a JSON manifest.
-- Automatic enhancement of current rosdoc2 message and service pages on `https://docs.ros.org/`.
+- Automatic enhancement of current rosdoc2 message, service, and action pages on `https://docs.ros.org/`.
 - A toolbar navigator available even when the current tab is not a ROS page.
 - No hosted backend, proxy, crawler, documentation mirror, scheduled jobs, or runtime downloads of extension code.
 - No framework or compilation step required. Browser-specific packaging is allowed.
-- Actions, standalone IDL definitions, and pre-rosdoc2 documentation are outside the initial scope.
+- Standalone IDL definitions, and pre-rosdoc2 documentation are outside the initial scope.
 
 The earlier standalone website prototype is preserved under `app/` in the initial Git commit (`c059695`). The extension replaces that prototype; its query-string routing is not the extension's API.
 
@@ -23,10 +23,11 @@ The initial supported interface URL shape is:
 
 `https://docs.ros.org/en/<distro>/p/<pkg>/<type>/<name>.html`
 
-Here, `type` is `msg` or `srv`. Examples:
+Here, `type` is `msg`, `srv`, or `action`. Examples:
 
 - https://docs.ros.org/en/rolling/p/point_cloud_interfaces/msg/CompressedPointCloud2.html
 - https://docs.ros.org/en/humble/p/action_msgs/srv/CancelGoal.html
+- https://docs.ros.org/en/rolling/p/control_msgs/action/FollowJointTrajectory.html
 
 The distro package listing is `https://docs.ros.org/en/<distro>/p/`, and a package landing page is `https://docs.ros.org/en/<distro>/p/<pkg>/`.
 
@@ -43,7 +44,7 @@ After a supported interface page loads, a content script:
 
 The added section preserves declaration order, field names, constants, default values, and array/string bounds. It removes comments and blank lines, trims indentation, and normalizes spacing between declaration tokens without changing literal values. Comment recognition must respect quoted strings and escapes. Primitive declarations remain visible but unlinked.
 
-Services retain their request/response boundary, displayed with `Request` and `Response` labels. Empty messages and empty request or response sections are valid; display `(empty)` for them.
+Services retain their request/response boundary, displayed with `Request` and `Response` labels. Actions retain two boundaries, displayed with `Goal`, `Result`, and `Feedback` labels. Empty messages and empty service/action sections are valid; display `(empty)` for them.
 
 Links behave as ordinary hyperlinks, including keyboard navigation, opening in a new tab, and browser Back. Following a link loads the next official page, where the extension runs again. No target prefetching or link-existence checks are needed.
 
@@ -53,7 +54,7 @@ The popup's **Reformat interface definitions** checkbox controls enhancement glo
 
 ## Type recognition and link resolution
 
-Parse each declaration's first whitespace-delimited token as its type; do not capture through the last whitespace on the line. Blank lines, comments, and the service separator are not declarations.
+Parse each declaration's first whitespace-delimited token as its type; do not capture through the last whitespace on the line. Blank lines, comments, and service/action separators are not declarations.
 
 For link resolution only:
 
@@ -61,7 +62,7 @@ For link resolution only:
 2. Recognize bounded strings such as `string<=32` as primitive types.
 3. Treat `bool`, `byte`, `char`, `float32`, `float64`, `int8`, `int16`, `int32`, `int64`, `uint8`, `uint16`, `uint32`, `uint64`, `string`, and `wstring` as primitives; bounded `wstring` is also primitive.
 4. Resolve `pkg/Name` against the named package and an unqualified `Name` against the current package.
-5. Preserve the current distro and always target `msg`, even when the containing document is a service.
+5. Preserve the current distro and always target `msg`, even when the containing document is a service or action.
 
 Only the base message type is linked; array bounds remain visible after the link. Examples:
 
@@ -82,15 +83,15 @@ Clicking the extension's toolbar button opens a small popup with:
 
 - **Distro:** text input with a `datalist` of known distro names, including `rolling`. Unlisted syntactically valid names are accepted.
 - **Package:** text input.
-- **Type:** `select` with `msg` and `srv`; initially `msg`.
+- **Type:** `select` with `msg`, `srv`, and `action`; initially `msg`.
 - **Name:** text input, preserving case.
 - **Go:** submit button; Enter also submits.
 
-Package and Name placeholders show examples for the selected Type: `visualization_msgs/msg/Marker` for messages and `nav_msgs/srv/SetMap` for services. Apply them when initializing the popup and whenever Type changes. Keep examples prefixed with `ex:`. Changing Type preserves Package and swaps between separate in-memory Name drafts. Initialize the selected type's draft from the prefilled Name and the other draft as empty; discard both when the popup closes.
+Package and Name placeholders show examples for the selected Type: `visualization_msgs/msg/Marker` for messages, `nav_msgs/srv/SetMap` for services, and `control_msgs/action/FollowJointTrajectory` for actions. Apply them when initializing the popup and whenever Type changes. Keep examples prefixed with `ex:`. Changing Type preserves Package and swaps between separate in-memory Name drafts. Initialize the selected type's draft from the prefilled Name and the other drafts as empty; discard all drafts when the popup closes.
 
 When opened on a supported ROS URL, populate the available fields from that URL. On a package or distro listing, leave the more specific fields blank and select `msg`. On other pages, restore the last submitted values, or start with `rolling`, an empty package/name, and `msg` if there are none. `rolling` is the confirmed initial default; it is an explicit setting rather than an automatically discovered latest release.
 
-Trim surrounding whitespace on submission. An empty distro resolves to the initial default. Require distro and package values to match `[a-z][a-z0-9_]*`, and interface names to match `[A-Z][A-Za-z0-9]*`, matching each whole value. Validate `type` as `msg` or `srv` even though the normal control is a select. Reject invalid input in the popup before navigation.
+Trim surrounding whitespace on submission. An empty distro resolves to the initial default. Require distro and package values to match `[a-z][a-z0-9_]*`, and interface names to match `[A-Z][A-Za-z0-9]*`, matching each whole value. Validate `type` as `msg`, `srv`, or `action` even though the normal control is a select. Reject invalid input in the popup before navigation.
 
 | Submitted fields after applying the distro default | Destination |
 | --- | --- |
@@ -144,4 +145,5 @@ Verify in both Firefox and Chrome:
 
 - [Content scripts](https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts)
 - [Extension popups](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/user_interface/Popups)
+- [ROS action interface format](https://design.ros2.org/articles/actions.html)
 - [ROS interface format](https://design.ros2.org/articles/legacy_interface_definition.html)

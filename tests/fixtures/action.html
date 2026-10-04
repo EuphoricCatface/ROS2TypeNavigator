@@ -1,0 +1,26 @@
+<!doctype html>
+<!-- Copyright (C) 2026 Seongyong Park and contributors
+     SPDX-License-Identifier: GPL-3.0-or-later -->
+<html lang="en">
+<head><meta charset="utf-8"><title>FollowJointTrajectory fixture</title></head>
+<body><main>
+<h1>FollowJointTrajectory</h1>
+<p><strong>Source</strong></p>
+<pre># Abbreviated action definition for fixture testing.
+trajectory_msgs/JointTrajectory trajectory
+JointTolerance[] path_tolerance
+builtin_interfaces/Duration goal_time_tolerance
+---
+int32 error_code
+int32 SUCCESSFUL = 0
+int32 INVALID_GOAL = -1
+string error_string
+---
+std_msgs/Header header
+string[] joint_names
+trajectory_msgs/JointTrajectoryPoint desired
+trajectory_msgs/JointTrajectoryPoint actual
+trajectory_msgs/JointTrajectoryPoint error
+</pre>
+<p id="after-source">Following documentation remains available.</p>
+</main></body></html>

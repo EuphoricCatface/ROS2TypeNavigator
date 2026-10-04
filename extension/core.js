@@ -26,8 +26,8 @@
     if (values.pkg && !IDENTIFIER.test(values.pkg)) {
       return invalid("pkg", "Package must start with a lowercase letter and contain only lowercase letters, digits, or underscores.");
     }
-    if (!["msg", "srv"].includes(values.type)) {
-      return invalid("type", "Choose Message (msg) or Service (srv).");
+    if (!["msg", "srv", "action"].includes(values.type)) {
+      return invalid("type", "Choose Message (msg), Service (srv), or Action (action).");
     }
     if (values.name && !values.pkg) return invalid("pkg", "Enter a package when an interface name is supplied.");
     if (values.name && !MESSAGE_NAME.test(values.name)) {
@@ -43,7 +43,7 @@
     let url;
     try { url = new URL(value); } catch { return null; }
     if (url.origin !== ORIGIN || url.username || url.password) return null;
-    const match = /^\/en\/([a-z][a-z0-9_]*)\/p\/(?:([a-z][a-z0-9_]*)\/(?:(msg|srv)\/([A-Z][A-Za-z0-9]*)\.html)?)?$/.exec(url.pathname);
+    const match = /^\/en\/([a-z][a-z0-9_]*)\/p\/(?:([a-z][a-z0-9_]*)\/(?:(msg|srv|action)\/([A-Z][A-Za-z0-9]*)\.html)?)?$/.exec(url.pathname);
     if (!match) return null;
     return { distro: match[1], pkg: match[2] || "", type: match[3] || "msg", name: match[4] || "" };
   }
@@ -112,15 +112,18 @@
   function parseDefinition(source, context) {
     const lines = source.split(/\r\n|\n|\r/);
     const separators = lines.flatMap((line, index) => withoutComment(line).text === "---" ? [index] : []);
-    if (context.type === "srv") {
-      if (separators.length !== 1) {
-        // Preserve an unsupported service layout without implying a request/response split.
+    const labels = context.type === "srv" ? ["Request", "Response"]
+      : context.type === "action" ? ["Goal", "Result", "Feedback"] : null;
+    if (labels) {
+      if (separators.length !== labels.length - 1) {
+        // Preserve unsupported layouts without implying section boundaries.
         return [{ label: "", lines: lines.map(line => ({ text: line.trim(), href: null })).filter(line => line.text) }];
       }
-      return [
-        { label: "Request", lines: lines.slice(0, separators[0]).map(line => parseLine(line, context)).filter(Boolean) },
-        { label: "Response", lines: lines.slice(separators[0] + 1).map(line => parseLine(line, context)).filter(Boolean) },
-      ];
+      const boundaries = [-1, ...separators, lines.length];
+      return labels.map((label, index) => ({
+        label,
+        lines: lines.slice(boundaries[index] + 1, boundaries[index + 1]).map(line => parseLine(line, context)).filter(Boolean),
+      }));
     }
     return [{ label: "", lines: lines.map(line => parseLine(line, context)).filter(Boolean) }];
   }

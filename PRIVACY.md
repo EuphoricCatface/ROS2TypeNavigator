@@ -10,7 +10,7 @@ When you open the popup, the extension reads the current tab's URL to prefill th
 
 On supported pages at `https://docs.ros.org/en/*`, the extension reads the already loaded interface definition and page URL to add links to referenced message types. This processing happens in your browser; the extension does not upload the page contents.
 
-The popup uses the distro, package, interface type (`msg` or `srv`), and interface name you enter to construct an official documentation URL. Separate message and service Name drafts remain only in memory while the popup is open and are discarded when it closes.
+The popup uses the distro, package, interface type (`msg`, `srv`, or `action`), and interface name you enter to construct an official documentation URL. Separate message, service, and action Name drafts remain only in memory while the popup is open and are discarded when it closes.
 
 ## Local storage and retention
 

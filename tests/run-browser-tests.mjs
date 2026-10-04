@@ -112,7 +112,7 @@ try {
 
   let evaluate, navigate, screenshot, popupUrl, interceptFixtures, tabUrls;
   const fixtureBody = async url => {
-    const name = url.includes("/srv/") ? "service" : "message";
+    const name = url.includes("/srv/") ? "service" : url.includes("/action/") ? "action" : "message";
     return (await readFile(resolve(root, `tests/fixtures/${name}.html`))).toString("base64");
   };
   if (browser === "chromium") {
@@ -232,6 +232,12 @@ try {
   await until(() => evaluate(`location.href === ${JSON.stringify(fixtureUrl)} && document.querySelectorAll('#ros2-type-navigator-definition').length === 1`), "Back navigation");
   console.log("Installed extension: automatic injection, service links, linked navigation, and Back passed.");
 
+  await navigate("https://docs.ros.org/en/rolling/p/control_msgs/action/FollowJointTrajectory.html");
+  await until(() => evaluate("document.querySelectorAll('#ros2-type-navigator-definition h3').length === 3"), "installed action enhancement");
+  assert.deepEqual(await evaluate("[...document.querySelectorAll('#ros2-type-navigator-definition h3')].map(h => h.textContent)"), ["Goal", "Result", "Feedback"]);
+  assert.ok((await evaluate("[...document.querySelectorAll('#ros2-type-navigator-definition a')].map(a => a.href)")).every(url => url.includes("/msg/")));
+  console.log("Installed extension: action goal, result, and feedback enhancement passed.");
+
   await navigate(popupUrl);
   await until(() => evaluate("document.getElementById('fields')?.disabled === false"), "popup reload");
   // Keep this extension tab open to inspect the native APIs after submission.
@@ -262,6 +268,7 @@ try {
     for (const url of [
       "https://docs.ros.org/en/humble/p/action_msgs/srv/CancelGoal.html",
       "https://docs.ros.org/en/humble/p/sensor_msgs/msg/PointCloud2.html",
+      "https://docs.ros.org/en/rolling/p/control_msgs/action/FollowJointTrajectory.html",
     ]) {
       await navigate(url);
       try {

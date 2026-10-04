@@ -95,13 +95,15 @@
     const values = await initialize(api);
     for (const [key, value] of Object.entries(values)) controls[key].value = value;
     // Drafts belong only to this popup instance; only submitted values are saved.
-    const names = { msg: "", srv: "" };
+    const names = { msg: "", srv: "", action: "" };
     let selectedType = controls.type.value;
     names[selectedType] = controls.name.value;
     function updatePlaceholders() {
-      const example = controls.type.value === "srv"
-        ? { pkg: "nav_msgs", name: "SetMap" }
-        : { pkg: "visualization_msgs", name: "Marker" };
+      const example = {
+        msg: { pkg: "visualization_msgs", name: "Marker" },
+        srv: { pkg: "nav_msgs", name: "SetMap" },
+        action: { pkg: "control_msgs", name: "FollowJointTrajectory" },
+      }[controls.type.value];
       controls.pkg.placeholder = `ex: ${example.pkg}`;
       controls.name.placeholder = `ex: ${example.name}`;
     }
