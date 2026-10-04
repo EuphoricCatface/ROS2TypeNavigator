@@ -204,11 +204,22 @@ try {
   await navigate(popupUrl);
   await until(() => evaluate("document.getElementById('fields')?.disabled === false"), "extension popup initialization");
   assert.equal(await evaluate("document.getElementById('distro').value"), "rolling");
+  assert.equal(await evaluate("(globalThis.browser || chrome).extension.isAllowedIncognitoAccess()"), false);
   if (browser === "chromium") await screenshot(screenshotPath);
   console.log(`Installed extension popup initialized; screenshot: ${screenshotPath}`);
 
   const removeInterception = await interceptFixtures();
   const fixtureUrl = "https://docs.ros.org/en/humble/p/action_msgs/srv/CancelGoal.html";
+  await evaluate("(document.getElementById('reformat-enabled').click(), true)");
+  await until(() => evaluate("(async () => (await (globalThis.browser || chrome).storage.local.get('reformatEnabled')).reformatEnabled === false)()"), "saved disabled reformatting preference");
+  await navigate(fixtureUrl);
+  assert.equal(await evaluate("new Promise(resolve => setTimeout(() => resolve(!!document.getElementById('ros2-type-navigator-definition')), 200))"), false);
+  await navigate(popupUrl);
+  await until(() => evaluate("document.getElementById('fields')?.disabled === false"), "disabled preference popup reload");
+  assert.equal(await evaluate("document.getElementById('reformat-enabled').checked"), false);
+  await evaluate("(document.getElementById('reformat-enabled').click(), true)");
+  await until(() => evaluate("(async () => (await (globalThis.browser || chrome).storage.local.get('reformatEnabled')).reformatEnabled === true)()"), "saved enabled reformatting preference");
+  console.log("Installed extension: private access denied and reformatting preference persisted.");
   await navigate(fixtureUrl);
   await until(() => evaluate("!!document.getElementById('ros2-type-navigator-definition')"), "installed content script injection");
   assert.deepEqual(await evaluate("[...document.querySelectorAll('#ros2-type-navigator-definition a')].map(a => a.href)"), [

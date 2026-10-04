@@ -55,6 +55,8 @@ Click the toolbar button to open the navigator. It prefills from the current sup
 
 Switching Type keeps separate message and service Name drafts while the popup is open. An unused type starts with an empty Name. These drafts are discarded when the popup closes; only submitted navigation values are saved locally.
 
+The **Reformat interface definitions** checkbox enables or disables the added definitions across documentation tabs immediately. It defaults to enabled and is remembered locally. The navigator remains available when reformatting is disabled.
+
 | Inputs | Destination |
 | --- | --- |
 | Distro only | Official package listing |
@@ -122,7 +124,7 @@ Live checks depend on the ROS site's availability and acceptance of automated br
 ### Validation record
 
 - Node.js 26.9.0: 20 parser, routing, initialization, and submission tests passed.
-- Chromium 153.0.8010.52 and Firefox 156.0: six DOM/popup fixture checks passed in each, plus installed-extension injection, links, Back, current-tab navigation, background tab creation, and persisted values.
+- Chromium and Firefox: seven DOM/popup fixture checks passed in each, including reformatting changes and storage failures, plus installed-extension injection, links, Back, current-tab navigation, background tab creation, and persisted values.
 - Branded Google Chrome was not available; Chromium was used for the Chromium-family checks.
 - Firefox also passed live enhancement checks on Humble's `action_msgs/srv/CancelGoal` and `sensor_msgs/msg/PointCloud2`, with the expected same-package and cross-package links.
 - A live Chromium check received the ROS site's Anubis **Access Denied** page, so live-site enhancement was not verified in that run. The extension correctly left the error page untouched.

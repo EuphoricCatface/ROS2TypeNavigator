@@ -18,6 +18,12 @@
       async save(values) {
         await extension.storage.local.set({ [STORAGE_KEY]: values });
       },
+      async readEnabled() {
+        return (await extension.storage.local.get("reformatEnabled")).reformatEnabled !== false;
+      },
+      async setEnabled(enabled) {
+        await extension.storage.local.set({ reformatEnabled: enabled });
+      },
       async createTab(url) {
         return extension.tabs.create({ url, active: false });
       },
@@ -62,6 +68,29 @@
     const fields = doc.getElementById("fields");
     const button = doc.getElementById("go");
     const error = doc.getElementById("error");
+    const toggle = doc.getElementById("reformat-enabled");
+    const toggleStatus = doc.getElementById("reformat-status");
+    let enabled;
+    try {
+      enabled = await api.readEnabled();
+      toggle.checked = enabled;
+      toggle.disabled = false;
+    } catch {
+      toggleStatus.textContent = "Could not load the reformatting setting. Reopen the popup to try again.";
+      toggleStatus.hidden = false;
+    }
+    toggle.addEventListener("change", async () => {
+      toggle.disabled = true;
+      toggleStatus.hidden = true;
+      try {
+        await api.setEnabled(toggle.checked);
+        enabled = toggle.checked;
+      } catch {
+        toggle.checked = enabled;
+        toggleStatus.textContent = "Could not save the reformatting setting. Please try again.";
+        toggleStatus.hidden = false;
+      } finally { toggle.disabled = false; }
+    });
     const controls = Object.fromEntries(Object.keys(core.DEFAULTS).map(key => [key, doc.getElementById(key)]));
     const values = await initialize(api);
     for (const [key, value] of Object.entries(values)) controls[key].value = value;

@@ -63,6 +63,35 @@
     return true;
   }
 
-  root.ROSTypeNavigatorPage = { enhance, findSource };
-  if (root.document && root.location) enhance(root.document, root.location.href);
+  async function connect(doc, url, storage) {
+    let changed = false;
+    let disposed = false;
+    function apply(enabled) {
+      if (disposed) return;
+      if (enabled) enhance(doc, url);
+      else doc.getElementById(SECTION_ID)?.remove();
+    }
+    function onChanged(changes, area) {
+      if (area !== "local" || !Object.hasOwn(changes, "reformatEnabled")) return;
+      changed = true;
+      apply(changes.reformatEnabled.newValue !== false);
+    }
+    storage.onChanged.addListener(onChanged);
+    try {
+      const saved = await storage.local.get("reformatEnabled");
+      if (!changed) apply(saved.reformatEnabled !== false);
+    } catch {
+      if (!changed) apply(true);
+    }
+    return () => {
+      disposed = true;
+      storage.onChanged.removeListener(onChanged);
+    };
+  }
+
+  root.ROSTypeNavigatorPage = { enhance, findSource, connect };
+  const extension = root.browser || root.chrome;
+  if (root.document && root.location && extension?.runtime?.id) {
+    connect(root.document, root.location.href, extension.storage);
+  }
 })(globalThis);

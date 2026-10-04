@@ -16,6 +16,11 @@
       <h1>Type Navigator</h1>
       <p class="intro">Jump to a package or interface.</p>
     </header>
+    <label class="reformat-setting" for="reformat-enabled">
+      <input id="reformat-enabled" type="checkbox" checked disabled aria-describedby="reformat-status">
+      Reformat interface definitions
+    </label>
+    <p id="reformat-status" class="hint" role="status" hidden></p>
     <form id="navigator" novalidate>
       <fieldset id="fields" disabled>
         <legend class="visually-hidden">Documentation destination</legend>

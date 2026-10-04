@@ -45,6 +45,31 @@
     assert(doc.querySelectorAll(`#${sectionId}`).length === 1, "duplicate section");
   });
 
+  await test("reformat preference updates open pages and wins over an older initial read", async () => {
+    const doc = await fixture("message");
+    const original = doc.documentElement.outerHTML;
+    const listeners = new Set();
+    let resolveRead;
+    const connection = page.connect(doc, messageUrl, {
+      local: { get: () => new Promise(resolve => { resolveRead = resolve; }) },
+      onChanged: { addListener: fn => listeners.add(fn), removeListener: fn => listeners.delete(fn) },
+    });
+    const change = (enabled, area = "local") => listeners.forEach(fn => fn({ reformatEnabled: { newValue: enabled } }, area));
+    change(false);
+    resolveRead({ reformatEnabled: true });
+    const disconnect = await connection;
+    assert(!section(doc), "stale initial read overrode disabled preference");
+    change(true, "sync");
+    assert(!section(doc), "sync setting affected local preference");
+    change(true);
+    change(true);
+    assert(doc.querySelectorAll(`#${sectionId}`).length === 1, "enabling added duplicate sections");
+    change(false);
+    assert(doc.documentElement.outerHTML === original, "disabling changed original documentation");
+    disconnect();
+    assert(listeners.size === 0, "preference listener was not removed");
+  });
+
   await test("service: request/response split and same-package message links", async () => {
     const doc = await fixture("service");
     page.enhance(doc, serviceUrl);
@@ -80,14 +105,35 @@
     if (frame.contentDocument.readyState !== "complete") await new Promise(resolve => frame.addEventListener("load", resolve, { once: true }));
     const doc = frame.contentDocument;
     const calls = [];
+    const settingCalls = [];
+    let enabled = true;
+    let failSetting = false;
     const api = {
       currentUrl: async () => serviceUrl,
       readSaved: async () => undefined,
+      readEnabled: async () => enabled,
+      setEnabled: async value => {
+        if (failSetting) throw Error("unavailable");
+        enabled = value;
+        settingCalls.push(value);
+      },
       createTab: async url => { calls.push(["create", url]); return { id: 2 }; },
       save: async values => calls.push(["save", values]),
       navigateCurrent: async url => calls.push(["navigate", url]),
     };
     await globalThis.ROSTypeNavigatorPopup.mount(doc, api, () => calls.push(["close"]));
+    const toggle = doc.getElementById("reformat-enabled");
+    assert(toggle.checked && !toggle.disabled, "reformat toggle did not initialize");
+    failSetting = true;
+    toggle.checked = false;
+    toggle.dispatchEvent(new Event("change"));
+    await tick();
+    assert(toggle.checked && !doc.getElementById("reformat-status").hidden, "failed setting write was not reverted and reported");
+    failSetting = false;
+    toggle.checked = false;
+    toggle.dispatchEvent(new Event("change"));
+    await tick();
+    assert(settingCalls.join(",") === "false" && doc.getElementById("reformat-status").hidden, "toggle did not save disabled preference");
     assert(doc.getElementById("name").value === "CancelGoal", "name not prefilled");
     assert(doc.getElementById("type").value === "srv", "kind not prefilled");
     assert(doc.getElementById("pkg").placeholder === "ex: nav_msgs", "initial service package example missing");
@@ -118,6 +164,7 @@
     assert(calls.length === 0, "type switching saved or navigated");
     const reopened = parser.parseFromString(doc.documentElement.outerHTML, "text/html");
     await globalThis.ROSTypeNavigatorPopup.mount(reopened, api, () => {});
+    assert(!reopened.getElementById("reformat-enabled").checked, "reformat preference was not restored");
     const reopenedType = reopened.getElementById("type");
     assert(reopened.getElementById("name").value === "CancelGoal", "reopening retained an unsubmitted service draft");
     reopenedType.value = "msg";

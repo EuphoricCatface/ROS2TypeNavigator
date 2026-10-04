@@ -20,8 +20,10 @@ h1 { margin: 0; font-size: 24px; font-weight: 650; letter-spacing: -0.025em; }
 fieldset { padding: 0; margin: 0; border: 0; min-width: 0; }
 label { display: block; margin: 13px 0 6px; font-weight: 600; }
 fieldset > label:first-of-type { margin-top: 0; }
-input, select, button { width: 100%; min-height: 37px; font: inherit; border-radius: 5px; }
-input, select { border: 1px solid var(--line); padding: 7px 9px; color: inherit; background: var(--surface); }
+input:not([type="checkbox"]), select, button { width: 100%; min-height: 37px; font: inherit; border-radius: 5px; }
+input:not([type="checkbox"]), select { border: 1px solid var(--line); padding: 7px 9px; color: inherit; background: var(--surface); }
+.reformat-setting { display: flex; align-items: center; gap: 9px; margin: 0 0 18px; }
+.reformat-setting input { width: 16px; height: 16px; margin: 0; accent-color: var(--accent); }
 input::placeholder { color: var(--muted); opacity: 0.8; }
 .interface-row { display: grid; grid-template-columns: 137px minmax(0, 1fr); gap: 10px; }
 button { padding: 9px 12px; border: 1px solid var(--accent); color: white; background: var(--accent); font-weight: 650; cursor: pointer; }

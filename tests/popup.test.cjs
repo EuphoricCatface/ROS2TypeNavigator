@@ -97,12 +97,14 @@ test("browser adapter uses narrow tab and local-storage APIs", async () => {
       create: async options => { calls.push(options); return { id: 3 }; },
       update: async (id, options) => { calls.push([id, options]); },
     },
-    storage: { local: { get: async () => ({ lastNavigation: values }), set: async data => { calls.push(data); } } },
+    storage: { local: { get: async () => ({ lastNavigation: values, reformatEnabled: false }), set: async data => { calls.push(data); } } },
   });
   assert.equal(await api.currentUrl(), "https://docs.ros.org/en/rolling/p/");
   assert.deepEqual(await api.readSaved(), values);
+  assert.equal(await api.readEnabled(), false);
+  await api.setEnabled(true);
   await api.createTab("https://docs.ros.org/en/rolling/p/");
   await api.save(values);
   await api.navigateCurrent("https://docs.ros.org/en/rolling/p/");
-  assert.deepEqual(calls, [{ active: true, currentWindow: true }, { url: "https://docs.ros.org/en/rolling/p/", active: false }, { lastNavigation: values }, [{ url: "https://docs.ros.org/en/rolling/p/" }, undefined]]);
+  assert.deepEqual(calls, [{ active: true, currentWindow: true }, { reformatEnabled: true }, { url: "https://docs.ros.org/en/rolling/p/", active: false }, { lastNavigation: values }, [{ url: "https://docs.ros.org/en/rolling/p/" }, undefined]]);
 });

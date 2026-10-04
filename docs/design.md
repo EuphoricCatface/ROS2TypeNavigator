@@ -49,6 +49,8 @@ Links behave as ordinary hyperlinks, including keyboard navigation, opening in a
 
 Insert at most one extension section per document. Use scoped styles and native links so that the additions work with the official page's typography and colors.
 
+The popup's **Reformat interface definitions** checkbox controls enhancement globally. It defaults to enabled, stores one boolean in local extension storage, and immediately adds or removes the extension section in open documentation tabs. The original Source block and popup navigation remain available when it is disabled. Content scripts listen for local storage changes and ignore stale initial preference reads.
+
 ## Type recognition and link resolution
 
 Parse each declaration's first whitespace-delimited token as its type; do not capture through the last whitespace on the line. Blank lines, comments, and the service separator are not declarations.
@@ -108,6 +110,8 @@ Current-tab navigation can tear down the popup, so save valid submitted values l
 Use a Manifest V3 content-script declaration restricted to `https://docs.ros.org/en/*`; the script checks the supported interface URL shape before modifying anything. Use the extension action's popup for navigation.
 
 The implementation needs local storage for submitted values and access to the active tab URL for prefilling the popup. Prefer `storage` and `activeTab` alongside the scoped content-script declaration; avoid broad access to unrelated websites. Account for Firefox and Chrome permission behavior during packaging and testing.
+
+Set `incognito` to `not_allowed`; private/incognito windows are outside the extension's scope.
 
 Neither the content script nor the popup fetches documentation. The browser loads destinations through normal navigation. No background process is required for the initial behavior, and ROS CORS headers do not affect reading the already loaded page.
 

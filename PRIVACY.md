@@ -18,6 +18,8 @@ The extension cannot be enabled in private or incognito windows, so it does not 
 
 The extension stores one set of submitted navigation values—distro, package, type, and name—in the browser's local extension storage so it can restore them next time. These values are not synced through the browser's sync service or sent to the maintainer.
 
+It also stores your reformatting preference (enabled or disabled) locally. Changing this setting updates the added definitions in open documentation tabs without sending information to a server.
+
 For navigation in the current tab, the values are saved before navigation because navigating can close the popup. They may therefore remain saved even if navigation fails. For a new background tab, values are saved after the tab is created successfully. Unsubmitted edits and the separate Name drafts are not saved.
 
 Saved values remain until replaced by another submission or removed from the browser's extension storage. You can replace them by submitting different values, or remove them by uninstalling the extension. Disabling the extension does not erase its saved values.
