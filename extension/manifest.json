@@ -30,7 +30,8 @@
   }],
   "browser_specific_settings": {
     "gecko": {
-      "id": "ros2-type-navigator@local.invalid",
+      "id": "ROS2TypeNavigator@euphcat.person",
+      "strict_min_version": "157.0",
       "data_collection_permissions": {"required": ["none"]}
     }
   }
