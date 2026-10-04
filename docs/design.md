@@ -84,6 +84,8 @@ Clicking the extension's toolbar button opens a small popup with:
 - **Name:** text input, preserving case.
 - **Go:** submit button; Enter also submits.
 
+Package and Name placeholders show examples for the selected Type: `visualization_msgs/msg/Marker` for messages and `nav_msgs/srv/SetMap` for services. Apply them when initializing the popup and whenever Type changes. Keep examples prefixed with `ex:`; changing Type updates placeholders without replacing entered or restored values.
+
 When opened on a supported ROS URL, populate the available fields from that URL. On a package or distro listing, leave the more specific fields blank and select `msg`. On other pages, restore the last successfully submitted values, or start with `rolling`, an empty package/name, and `msg` if there are none. `rolling` is the confirmed initial default; it is an explicit setting rather than an automatically discovered latest release.
 
 Trim surrounding whitespace on submission. An empty distro resolves to the initial default. Require distro and package values to match `[a-z][a-z0-9_]*`, and interface names to match `[A-Z][A-Za-z0-9]*`, matching each whole value. Validate `type` as `msg` or `srv` even though the normal control is a select. Reject invalid input in the popup before navigation.

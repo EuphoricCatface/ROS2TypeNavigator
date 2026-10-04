@@ -90,6 +90,17 @@
     await globalThis.ROSTypeNavigatorPopup.mount(doc, api, () => calls.push(["close"]));
     assert(doc.getElementById("name").value === "CancelGoal", "name not prefilled");
     assert(doc.getElementById("type").value === "srv", "kind not prefilled");
+    assert(doc.getElementById("pkg").placeholder === "ex: nav_msgs", "initial service package example missing");
+    assert(doc.getElementById("name").placeholder === "ex: SetMap", "initial service name example missing");
+    const type = doc.getElementById("type");
+    type.value = "msg";
+    type.dispatchEvent(new Event("change", { bubbles: true }));
+    assert(doc.getElementById("pkg").placeholder === "ex: visualization_msgs", "message package example missing");
+    assert(doc.getElementById("name").placeholder === "ex: Marker", "message name example missing");
+    assert(doc.getElementById("pkg").value === "action_msgs" && doc.getElementById("name").value === "CancelGoal", "changing type overwrote input values");
+    type.value = "srv";
+    type.dispatchEvent(new Event("change", { bubbles: true }));
+    assert(doc.getElementById("pkg").placeholder === "ex: nav_msgs" && doc.getElementById("name").placeholder === "ex: SetMap", "switching back to service did not update examples");
     const form = doc.getElementById("navigator");
     doc.getElementById("pkg").value = "";
     form.requestSubmit();

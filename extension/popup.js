@@ -63,6 +63,15 @@
     const controls = Object.fromEntries(Object.keys(core.DEFAULTS).map(key => [key, doc.getElementById(key)]));
     const values = await initialize(api);
     for (const [key, value] of Object.entries(values)) controls[key].value = value;
+    function updatePlaceholders() {
+      const example = controls.type.value === "srv"
+        ? { pkg: "nav_msgs", name: "SetMap" }
+        : { pkg: "visualization_msgs", name: "Marker" };
+      controls.pkg.placeholder = `ex: ${example.pkg}`;
+      controls.name.placeholder = `ex: ${example.name}`;
+    }
+    updatePlaceholders();
+    controls.type.addEventListener("change", updatePlaceholders);
     fields.disabled = false;
     const submit = createSubmitter(api, close);
 
