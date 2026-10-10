@@ -1,149 +1,88 @@
-# ROS2 Type Navigator - Extension Design
+# Behavior reference
 
-## Motivation
+ROS2 Type Navigator adds linked definitions to official ROS 2 documentation and provides a toolbar navigator. Both operate on already loaded pages or construct documentation URLs; neither fetches documentation or package catalogs.
 
-ROS documentation pages can be difficult to browse when message field types do not link to their definitions. Search results also often lead users to older documentation.
+## Supported URLs
 
-This project improves browsing by adding navigable type links to the official pages the user visits. A small toolbar popup provides direct navigation to a distro, package, or interface. Changes made by the extension are local to the user's browser; improving search rankings is outside this version's scope.
+Interface pages use:
 
-## Target and scope
+```text
+https://docs.ros.org/en/<distro>/p/<pkg>/<type>/<name>.html
+```
 
-- A Firefox and Chrome extension using plain JavaScript, HTML, CSS, and a JSON manifest.
-- Automatic enhancement of current rosdoc2 message, service, and action pages on `https://docs.ros.org/`.
-- A toolbar navigator available even when the current tab is not a ROS page.
-- No hosted backend, proxy, crawler, documentation mirror, scheduled jobs, or runtime downloads of extension code.
-- No framework or compilation step required. Browser-specific packaging is allowed.
-- Standalone IDL definitions, and pre-rosdoc2 documentation are outside the initial scope.
+`type` is `msg`, `srv`, or `action`. Package pages end at `<pkg>/`; distribution listings end at `/p/`. Query strings and fragments do not affect recognition. Other hosts and documentation layouts are unsupported.
 
-The earlier standalone website prototype is preserved under `app/` in the initial Git commit (`c059695`). The extension replaces that prototype; its query-string routing is not the extension's API.
+All generated URLs use HTTPS and the official `docs.ros.org` host.
 
-## Official URLs
+## Page enhancement
 
-The initial supported interface URL shape is:
+The content script looks inside `main` or `[role="main"]` for a Source label followed by a single `pre` or syntax-highlighted code block. Heading permalinks are ignored when matching the label. Missing or ambiguous candidates leave the page unchanged.
 
-`https://docs.ros.org/en/<distro>/p/<pkg>/<type>/<name>.html`
+A **Navigable definition** section is inserted immediately after the Source block. The original block is preserved, and repeated enhancement never adds a duplicate section. The added definition removes comments and blank lines, normalizes declaration spacing, and preserves field order, constants, defaults, and bounds. Quoted strings and escapes retain their contents.
 
-Here, `type` is `msg`, `srv`, or `action`. Examples:
-
-- https://docs.ros.org/en/rolling/p/point_cloud_interfaces/msg/CompressedPointCloud2.html
-- https://docs.ros.org/en/humble/p/action_msgs/srv/CancelGoal.html
-- https://docs.ros.org/en/rolling/p/control_msgs/action/FollowJointTrajectory.html
-
-The distro package listing is `https://docs.ros.org/en/<distro>/p/`, and a package landing page is `https://docs.ros.org/en/<distro>/p/<pkg>/`.
-
-All generated links target official documentation. There is no extension-specific query-string API. Other URL layouts, including older documentation aliases, are not promised in the initial version.
-
-## Automatic page enhancement
-
-After a supported interface page loads, a content script:
-
-1. Reads distro, package, interface kind, and name from the current URL.
-2. Locates the main interface's `Source` code block and reads its text, preserving line breaks across syntax-highlighting elements.
-3. Leaves the original source block available with its existing formatting and comments.
-4. Adds a section immediately after it, titled `Navigable definition`, containing a compact definition with linked message types.
-
-The added section preserves declaration order, field names, constants, default values, and array/string bounds. It removes comments and blank lines, trims indentation, and normalizes spacing between declaration tokens without changing literal values. Comment recognition must respect quoted strings and escapes. Primitive declarations remain visible but unlinked.
-
-Services retain their request/response boundary, displayed with `Request` and `Response` labels. Actions retain two boundaries, displayed with `Goal`, `Result`, and `Feedback` labels. Empty messages and empty service/action sections are valid; display `(empty)` for them.
-
-Links behave as ordinary hyperlinks, including keyboard navigation, opening in a new tab, and browser Back. Following a link loads the next official page, where the extension runs again. No target prefetching or link-existence checks are needed.
-
-Insert at most one extension section per document. Use scoped styles and native links so that the additions work with the official page's typography and colors.
-
-The popup's **Reformat interface definitions** checkbox controls enhancement globally. It defaults to enabled, stores one boolean in local extension storage, and immediately adds or removes the extension section in open documentation tabs. The original Source block and popup navigation remain available when it is disabled. Content scripts listen for local storage changes and ignore stale initial preference reads.
-
-## Type recognition and link resolution
-
-Parse each declaration's first whitespace-delimited token as its type; do not capture through the last whitespace on the line. Blank lines, comments, and service/action separators are not declarations.
-
-For link resolution only:
-
-1. Remove any array suffix: `[]`, `[N]`, or `[<=N]`.
-2. Recognize bounded strings such as `string<=32` as primitive types.
-3. Treat `bool`, `byte`, `char`, `float32`, `float64`, `int8`, `int16`, `int32`, `int64`, `uint8`, `uint16`, `uint32`, `uint64`, `string`, and `wstring` as primitives; bounded `wstring` is also primitive.
-4. Resolve `pkg/Name` against the named package and an unqualified `Name` against the current package.
-5. Preserve the current distro and always target `msg`, even when the containing document is a service or action.
-
-Only the base message type is linked; array bounds remain visible after the link. Examples:
-
-| Source declaration | Link destination |
+| Interface | Sections |
 | --- | --- |
-| `geometry_msgs/Pose pose # current pose` | Current distro, `geometry_msgs/msg/Pose` |
-| `GoalInfo[] goals_canceling` in `action_msgs/srv/CancelGoal` | Current distro, `action_msgs/msg/GoalInfo`; display `[]` after the link |
-| `Point[<=10] points` in `geometry_msgs` | Current distro, `geometry_msgs/msg/Point`; display `[<=10]` after the link |
-| `int32 count 10` | None; retain the declaration and default |
-| `string<=32 label` | None; retain the bound |
-| `uint8 MODE=1` | None; retain the constant |
+| Message | One unlabeled definition |
+| Service | Request, Response |
+| Action | Goal, Result, Feedback |
 
-Unknown or unsupported declaration syntax remains visible as plain text rather than receiving a guessed link. Build displayed text and links using DOM APIs, rather than inserting source text as HTML.
+Services require one `---` separator; actions require two. Empty sections display `(empty)`. A malformed section layout remains a single unlinked block rather than receiving guessed boundaries.
 
-## Toolbar navigator
+The reformatting toggle defaults to enabled. Changing it adds or removes the extension section across open documentation tabs through local storage notifications. A newer notification takes precedence over a pending initial preference read. Turning reformatting off leaves the original Source block and popup navigation available.
 
-Clicking the extension's toolbar button opens a small popup with:
+## Declaration parsing
 
-- **Distro:** text input with a `datalist` of known distro names, including `rolling`. Unlisted syntactically valid names are accepted.
-- **Package:** text input.
-- **Type:** `select` with `msg`, `srv`, and `action`; initially `msg`.
-- **Name:** text input, preserving case.
-- **Go:** submit button; Enter also submits.
+The first whitespace-delimited token is the field type. Supported array suffixes are `[]`, `[N]`, and `[<=N]`, with positive integer bounds. Bounded `string<=N` and `wstring<=N` are also recognized.
 
-Package and Name placeholders show examples for the selected Type: `visualization_msgs/msg/Marker` for messages, `nav_msgs/srv/SetMap` for services, and `control_msgs/action/FollowJointTrajectory` for actions. Apply them when initializing the popup and whenever Type changes. Keep examples prefixed with `ex:`. Changing Type preserves Package and swaps between separate in-memory Name drafts. Initialize the selected type's draft from the prefilled Name and the other drafts as empty; discard all drafts when the popup closes.
+Primitive types remain unlinked: `bool`, `byte`, `char`, `float32`, `float64`, `int8`, `int16`, `int32`, `int64`, `uint8`, `uint16`, `uint32`, `uint64`, `string`, and `wstring`.
 
-When opened on a supported ROS URL, populate the available fields from that URL. On a package or distro listing, leave the more specific fields blank and select `msg`. On other pages, restore the last submitted values, or start with `rolling`, an empty package/name, and `msg` if there are none. `rolling` is the confirmed initial default; it is an explicit setting rather than an automatically discovered latest release.
+For message references, `pkg/Name` resolves against the named package; an unqualified `Name` resolves against the current package. Links always target `msg` in the current distribution, including fields inside services and actions. Only the base type is linked; array suffixes remain visible.
 
-Trim surrounding whitespace on submission. An empty distro resolves to the initial default. Require distro and package values to match `[a-z][a-z0-9_]*`, and interface names to match `[A-Z][A-Za-z0-9]*`, matching each whole value. Validate `type` as `msg`, `srv`, or `action` even though the normal control is a select. Reject invalid input in the popup before navigation.
-
-| Submitted fields after applying the distro default | Destination |
+| Declaration | Result |
 | --- | --- |
-| Distro, no package or name | Official distro package listing |
-| Distro and package, no name | Official package landing page |
-| Distro, package, type, and name | Official interface page |
-| Name without package | Inline validation error |
+| `geometry_msgs/Pose pose` | Link to `geometry_msgs/msg/Pose` |
+| `GoalInfo[] goals_canceling` in `action_msgs` | Link to `action_msgs/msg/GoalInfo`, retaining `[]` |
+| `Point[<=10] points` in `geometry_msgs` | Link to `geometry_msgs/msg/Point`, retaining `[<=10]` |
+| `string<=32 label` | Retain the bound; no link |
+| `int32 count 10` | Retain the default; no link |
+| `uint8 MODE = 1` | Render `uint8 MODE=1`; no link |
 
-The selected type does not affect the destination when name is empty. This version uses the official listing pages rather than downloading package/interface lists into the popup.
+Field names follow lowercase snake case; constant names follow uppercase snake case. Primitive defaults are retained. Unsupported syntax, including complex defaults and standalone IDL declarations, remains plain text without speculative links. Rendering uses DOM text nodes and anchors, never source-derived HTML.
 
-Left click Go or press Enter to navigate the current tab. Middle click Go to open a new background tab. Both paths validate the inputs and close the popup on success; right click does not navigate. Inputs have visible labels; validation errors explain which field needs correction.
+## Popup navigation
 
-Current-tab navigation can tear down the popup, so save valid submitted values locally before navigating. If navigation fails, leave the popup open with an error; the submitted values may already be saved. For middle click, create the background tab first, then save and close. Failed tab creation leaves saved values unchanged. Storage failure must not prevent either navigation path. No separate Name drafts are persisted.
+On supported ROS pages, the popup prefills from the current URL. Elsewhere, it restores valid saved values or starts with `rolling`, `msg`, and empty Package and Name fields. Package and distribution pages leave the more specific fields empty and select `msg`.
 
-## Extension structure and permissions
+Inputs are trimmed before validation:
 
-Use a Manifest V3 content-script declaration restricted to `https://docs.ros.org/en/*`; the script checks the supported interface URL shape before modifying anything. Use the extension action's popup for navigation.
+| Field | Accepted values |
+| --- | --- |
+| Distro | `[a-z][a-z0-9_]*`; empty uses `rolling` |
+| Package | `[a-z][a-z0-9_]*`, or empty |
+| Type | `msg`, `srv`, or `action` |
+| Name | `[A-Z][A-Za-z0-9]*`, or empty; requires Package when supplied |
 
-The implementation needs local storage for submitted values and access to the active tab URL for prefilling the popup. Prefer `storage` and `activeTab` alongside the scoped content-script declaration; avoid broad access to unrelated websites. Account for Firefox and Chrome permission behavior during packaging and testing.
+| Supplied fields | Destination |
+| --- | --- |
+| Distro only | Distribution package listing |
+| Distro + Package | Package documentation |
+| Distro + Package + Type + Name | Interface definition |
 
-Set `incognito` to `not_allowed`; private/incognito windows are outside the extension's scope.
+Type has no effect when Name is empty. Distribution suggestions are optional; valid unlisted names are accepted.
 
-Neither the content script nor the popup fetches documentation. The browser loads destinations through normal navigation. No background process is required for the initial behavior, and ROS CORS headers do not affect reading the already loaded page.
+Package and Name placeholders change with Type: `visualization_msgs/msg/Marker`, `nav_msgs/srv/SetMap`, and `control_msgs/action/FollowJointTrajectory`. Examples are prefixed with `ex:`. Switching Type preserves Package and swaps between independent Name drafts; only the initially selected type inherits the prefilled Name. Drafts are discarded when the popup closes.
 
-## Error handling
+Left click Go or Enter navigates the current tab. Middle click creates a background tab. Both paths validate input and close the popup on success; right click does not navigate. Invalid fields receive an inline error and focus, and simultaneous submissions cannot open multiple tabs.
 
-- Invalid popup inputs produce a short inline error and do not navigate.
-- Unsupported pages are left untouched.
-- A matching interface URL without a recognizable Source block is left readable. Do not insert a definition or assume a server-side cause. Diagnostics may be logged to the extension console.
-- A declaration that cannot be understood is retained as plain text in the added section.
-- Missing destination pages, server errors, or access challenges are shown by the official site. Do not infer that they are temporary or switch distros silently.
-- If the browser denies site access, automatic enhancement cannot run; the navigator can still construct official URLs.
+## State and failure handling
 
-## Acceptance checks
+| Local storage key | Value |
+| --- | --- |
+| `lastNavigation` | One submitted set of distro, package, type, and name |
+| `reformatEnabled` | Boolean; absent means enabled |
 
-The first delivery supports local installation in both browsers. Store submission and signing are deferred. Firefox's temporary development installation must be repeated after a browser restart.
+Current-tab navigation saves values before updating the URL because navigation can close the popup. A failed update leaves the popup open with an error, but values may already be saved. Middle-click navigation creates the tab before saving; failed creation leaves saved values unchanged. Storage failures do not prevent navigation.
 
-Verify in both Firefox and Chrome:
+Missing destinations and access challenges are handled by the official website. The extension does not check link existence, bypass site restrictions, or switch distributions automatically.
 
-- A message with cross-package references receives correct links without changing its source block.
-- `CancelGoal` links same-package `GoalInfo` references to `msg`, and retains its request/response split.
-- Fixed and bounded arrays, bounded strings, defaults, constants, comments, and empty definitions display correctly.
-- Re-running enhancement does not duplicate the section; unsupported syntax stays visible.
-- Popup prefill works on interface, package, and distro pages, and saved values work on unrelated pages.
-- All popup navigation states and validation errors follow the table above.
-- Following a type link, opening it in a new tab, and using Back work normally.
-- Missing Source blocks and unavailable destination pages do not break the original documentation.
-- The extension issues no documentation fetches or background crawling requests.
-
-## References
-
-- [Content scripts](https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts)
-- [Extension popups](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/user_interface/Popups)
-- [ROS action interface format](https://design.ros2.org/articles/actions.html)
-- [ROS interface format](https://design.ros2.org/articles/legacy_interface_definition.html)
+The Manifest V3 extension uses `activeTab`, `storage`, and a content script scoped to `https://docs.ros.org/en/*`. Private/incognito access is disabled with `incognito: "not_allowed"`. There is no background worker or remote extension code. See [PRIVACY.md](../PRIVACY.md) for data disclosures and [the contributor guide](development.md) for validation commands.
