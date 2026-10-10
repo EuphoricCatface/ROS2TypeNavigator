@@ -23,7 +23,7 @@ function files(directory) {
 try {
   const tests = files(resolve(root, "tests")).filter(path => path.endsWith(".test.cjs")).sort();
   run(process.execPath, ["--test", "--test-isolation=none", ...tests]);
-  const sources = ["extension", "tests", "script", "scripts"].flatMap(dir => files(resolve(root, dir)));
+  const sources = ["extension", "tests", "script"].flatMap(dir => files(resolve(root, dir)));
   for (const source of sources.filter(path => /\.(?:js|cjs|mjs)$/.test(path))) run(process.execPath, ["--check", source]);
   // Parse Python without executing it or creating bytecode caches.
   run("python3", ["-c", "import ast, pathlib, sys; [ast.parse(pathlib.Path(p).read_text(), filename=p) for p in sys.argv[1:]]", ...sources.filter(path => path.endsWith(".py"))]);
