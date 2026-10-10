@@ -4,19 +4,9 @@ A small Firefox/Chrome extension that adds clickable message types to official R
 
 The original Source block stays intact. A **Navigable definition** appears below it, with comments removed and message types linked across packages. Service request/response and action goal/result/feedback sections stay separate.
 
-## Screenshots
+## Screenshot
 
-Original Odometry documentation:
-
-![Odometry documentation before enhancement](docs/screenshot/Rolling_Odometry_before.png)
-
-With the navigable definition:
-
-![Odometry documentation with linked message types](docs/screenshot/Rolling_Odometry_after.png)
-
-Toolbar navigator:
-
-![Type Navigator popup](docs/screenshot/Popup.png)
+![Odometry documentation with linked message types](docs/screenshot/Rolling_Odometry_applied.png)
 
 ## Install locally
 
